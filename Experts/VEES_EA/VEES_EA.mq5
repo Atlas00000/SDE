@@ -28,6 +28,8 @@ input double BreakEvenTriggerR  = 1.0;
 input double BreakEvenOffsetR   = 0.1;
 input bool   SkipWorstHour13    = true;
 input double MaxEmaDistancePips = 45.0;
+input bool   UseScoreEngine     = true;
+input double TradeScoreThreshold = 60.0;
 
 struct TradeStats
 {
@@ -205,6 +207,91 @@ bool HasRetestRejection(const int dir, const int shift)
    }
 
    return false;
+}
+
+double GetRetestRejectionRatio(const int dir, const int shift)
+{
+   const double open  = iOpen(_Symbol, PERIOD_M5, shift);
+   const double close = iClose(_Symbol, PERIOD_M5, shift);
+   const double high  = iHigh(_Symbol, PERIOD_M5, shift);
+   const double low   = iLow(_Symbol, PERIOD_M5, shift);
+   const double range = high - low;
+   if(range <= 0.0)
+      return 0.0;
+
+   if(dir == 1)
+      return (MathMin(open, close) - low) / range;
+   if(dir == 2)
+      return (high - MathMax(open, close)) / range;
+   return 0.0;
+}
+
+double ComputeTradeScore(const int dir,
+                         double &scoreEma,
+                         double &scoreReject,
+                         double &scoreBreakout,
+                         double &scoreSession,
+                         double &scoreRange,
+                         double &scoreSpread)
+{
+   const double open1  = iOpen(_Symbol, PERIOD_M5, 1);
+   const double close1 = iClose(_Symbol, PERIOD_M5, 1);
+   const double high1  = iHigh(_Symbol, PERIOD_M5, 1);
+   const double low1   = iLow(_Symbol, PERIOD_M5, 1);
+   const double rangePrice = high1 - low1;
+   const double body = MathAbs(close1 - open1);
+   const double breakoutStrength = (rangePrice > 0.0 ? body / rangePrice : 0.0);
+   const double rangePips = (rangePrice > 0.0 ? rangePrice / PricePerPip() : 0.0);
+
+   double emaH1[1];
+   double emaDistancePips = 999.0;
+   if(CopyBuffer(s_emaH1, 0, 1, 1, emaH1) >= 1)
+      emaDistancePips = MathAbs(close1 - emaH1[0]) / PricePerPip();
+
+   const double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+   const double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+   const double spreadPoints = (ask - bid) / _Point;
+
+   MqlDateTime t;
+   TimeToStruct(TimeCurrent(), t);
+   const int h = t.hour;
+   const bool inLondon = (h >= LondonSessionStartHour && h <= LondonSessionEndHour);
+   const bool inNY     = (h >= NYSessionStartHour && h <= NYSessionEndHour);
+
+   // EMA distance score (0..30)
+   if(emaDistancePips <= 10.0) scoreEma = 20.0;
+   else if(emaDistancePips <= 35.0) scoreEma = 30.0;
+   else if(emaDistancePips <= 45.0) scoreEma = 15.0;
+   else scoreEma = 0.0;
+
+   // Rejection score (0..20)
+   const double rejRatio = GetRetestRejectionRatio(dir, 1);
+   if(rejRatio >= 0.35) scoreReject = 20.0;
+   else if(rejRatio >= 0.20) scoreReject = 12.0;
+   else scoreReject = 0.0;
+
+   // Breakout strength score (0..15)
+   if(breakoutStrength >= 0.62) scoreBreakout = 15.0;
+   else if(breakoutStrength >= 0.52) scoreBreakout = 10.0;
+   else scoreBreakout = 3.0;
+
+   // Session/hour score (0..15)
+   if(h == 8) scoreSession = 15.0;
+   else if(h == 13) scoreSession = 0.0;
+   else if(inLondon || inNY) scoreSession = 10.0;
+   else scoreSession = 6.0;
+
+   // Range score (0..10)
+   if(rangePips >= 4.0 && rangePips <= 12.0) scoreRange = 10.0;
+   else if((rangePips >= 2.0 && rangePips < 4.0) || (rangePips > 12.0 && rangePips <= 18.0)) scoreRange = 6.0;
+   else scoreRange = 2.0;
+
+   // Spread score (0..10)
+   if(spreadPoints <= 5.0) scoreSpread = 10.0;
+   else if(spreadPoints <= 8.0) scoreSpread = 6.0;
+   else scoreSpread = 0.0;
+
+   return (scoreEma + scoreReject + scoreBreakout + scoreSession + scoreRange + scoreSpread);
 }
 
 void ResetManageState()
@@ -420,29 +507,50 @@ void OnTick()
                Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: Weak rejection (soft filter)");
             return;
          }
-
-         MqlDateTime t;
-         TimeToStruct(TimeCurrent(), t);
-         if(SkipWorstHour13 && t.hour == 13)
+         if(UseScoreEngine)
          {
+            double sEma=0, sRej=0, sBr=0, sSess=0, sRange=0, sSpr=0;
+            const double tradeScore = ComputeTradeScore(g_pendingDir, sEma, sRej, sBr, sSess, sRange, sSpr);
             if(VerboseLog)
-               Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: Worst hour filter (13)");
-            return;
+            {
+               Print("SCORE decision=", (tradeScore >= TradeScoreThreshold ? "TAKE" : "SKIP"),
+                     " total=", DoubleToString(tradeScore, 2),
+                     " thr=", DoubleToString(TradeScoreThreshold, 2),
+                     " ema=", DoubleToString(sEma, 2),
+                     " rej=", DoubleToString(sRej, 2),
+                     " breakout=", DoubleToString(sBr, 2),
+                     " session=", DoubleToString(sSess, 2),
+                     " range=", DoubleToString(sRange, 2),
+                     " spread=", DoubleToString(sSpr, 2));
+            }
+            if(tradeScore < TradeScoreThreshold)
+               return;
          }
+         else
+         {
+            MqlDateTime t;
+            TimeToStruct(TimeCurrent(), t);
+            if(SkipWorstHour13 && t.hour == 13)
+            {
+               if(VerboseLog)
+                  Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: Worst hour filter (13)");
+               return;
+            }
 
-         double emaH1[1];
-         if(CopyBuffer(s_emaH1, 0, 1, 1, emaH1) < 1)
-         {
-            if(VerboseLog)
-               Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: EMA unavailable");
-            return;
-         }
-         const double emaDistancePips = MathAbs(iClose(_Symbol, PERIOD_M5, 1) - emaH1[0]) / PricePerPip();
-         if(emaDistancePips > MaxEmaDistancePips)
-         {
-            if(VerboseLog)
-               Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: EMA distance too high (", DoubleToString(emaDistancePips, 2), " pips)");
-            return;
+            double emaH1[1];
+            if(CopyBuffer(s_emaH1, 0, 1, 1, emaH1) < 1)
+            {
+               if(VerboseLog)
+                  Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: EMA unavailable");
+               return;
+            }
+            const double emaDistancePips = MathAbs(iClose(_Symbol, PERIOD_M5, 1) - emaH1[0]) / PricePerPip();
+            if(emaDistancePips > MaxEmaDistancePips)
+            {
+               if(VerboseLog)
+                  Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: EMA distance too high (", DoubleToString(emaDistancePips, 2), " pips)");
+               return;
+            }
          }
 
          if(g_pendingDir == 1 && !IsH1UpTrendClosed())
