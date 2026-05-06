@@ -17,6 +17,9 @@ input double BreakoutBufferPips = 2.5;
 input double RetestTolerancePips = 5.0;
 input int    MaxSpreadPoints    = 30;
 input bool   VerboseLog         = false;
+input bool   UseMomentumFilter  = true;
+input bool   UseRejectionFilter = false;
+input double RejectionStrength  = 0.3;
 
 // 0 = idle, 1 = wait long retest, 2 = wait short retest
 int    g_pendingDir   = 0;
@@ -95,6 +98,32 @@ bool HasSimpleMomentum(const int dir, const int shift)
    return false;
 }
 
+bool HasRetestRejection(const int dir, const int shift)
+{
+   const double open  = iOpen(_Symbol, PERIOD_M5, shift);
+   const double close = iClose(_Symbol, PERIOD_M5, shift);
+   const double high  = iHigh(_Symbol, PERIOD_M5, shift);
+   const double low   = iLow(_Symbol, PERIOD_M5, shift);
+
+   const double range = high - low;
+   if(range <= 0.0)
+      return false;
+
+   if(dir == 1)
+   {
+      const double lower_wick = MathMin(open, close) - low;
+      return (lower_wick >= (range * RejectionStrength));
+   }
+
+   if(dir == 2)
+   {
+      const double upper_wick = high - MathMax(open, close);
+      return (upper_wick >= (range * RejectionStrength));
+   }
+
+   return false;
+}
+
 void OnTick()
 {
    if(!IsNewBar())
@@ -149,10 +178,17 @@ void OnTick()
             return;
          }
 
-         if(!HasSimpleMomentum(g_pendingDir, 1))
+         if(UseMomentumFilter && !HasSimpleMomentum(g_pendingDir, 1))
          {
             if(VerboseLog)
                Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: Weak momentum");
+            return;
+         }
+
+         if(UseRejectionFilter && !HasRetestRejection(g_pendingDir, 1))
+         {
+            if(VerboseLog)
+               Print(TimeToString(TimeCurrent(), TIME_DATE | TIME_MINUTES), " Blocked: Weak rejection (soft filter)");
             return;
          }
 
