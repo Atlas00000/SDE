@@ -13,6 +13,7 @@
 #include <VEM/VEM_Signal.mqh>
 #include <VEM/VEM_Risk.mqh>
 #include <VEM/VEM_Execution.mqh>
+#include <VEM/VEM_TradeLog.mqh>
 
 static datetime g_vem_last_bar_open = 0;
 
@@ -33,12 +34,22 @@ int OnInit()
       return INIT_FAILED;
      }
 
-   const int need_bars = MathMax(inp_bb_period, inp_vol_ma_period) + inp_signal_shift + 10;
+   int need_bars = MathMax(inp_bb_period, inp_vol_ma_period);
+   need_bars = MathMax(need_bars, inp_rsi_period);
+   need_bars = MathMax(need_bars, inp_ema_period + inp_ema_slope_lookback_bars);
+   if(inp_bb_walk_filter_enable)
+      need_bars = MathMax(need_bars, inp_signal_shift + inp_bb_walk_min_closes + 5);
+   if(inp_confirm_bar_enable)
+      need_bars = MathMax(need_bars, inp_signal_shift + 3);
+   need_bars += inp_signal_shift + 10;
    if(!VEM_Indicators_WaitReady(need_bars))
       VEM_Log_Info("Warning: indicator history still warming up");
+   if(!VEM_Indicators_WaitHtfReady())
+      VEM_Log_Info("Warning: HTF indicator history still warming up");
 
    VEM_State_OnInit();
    VEM_Execution_Init(sym);
+   VEM_TradeLog_OnInit(sym, Period());
 
    VEM_Log_Info("Init OK | magic=" + IntegerToString((long)inp_magic) +
                 " | chart=" + sym + " " + EnumToString(Period()) +
@@ -51,8 +62,17 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+   VEM_TradeLog_OnDeinit();
    VEM_Indicators_Deinit();
    VEM_Log_Verbose("Deinit reason=" + (string)reason);
+  }
+
+//+------------------------------------------------------------------+
+void OnTradeTransaction(const MqlTradeTransaction &trans,
+                        const MqlTradeRequest &request,
+                        const MqlTradeResult &result)
+  {
+   VEM_TradeLog_OnTransaction(_Symbol, Period(), trans, request, result);
   }
 
 //+------------------------------------------------------------------+
@@ -67,17 +87,29 @@ void OnTick()
    g_vem_last_bar_open = bar_open;
 
    const int sh = inp_signal_shift;
-   VEMIndicatorSnap snap;
-   if(!VEM_Indicators_Refresh(sym, tf, sh, snap))
+   VEMIndicatorSnap bar_snap;
+   if(!VEM_Indicators_Refresh(sym, tf, sh, bar_snap))
      {
       VEM_Log_Verbose("Skip bar: indicator refresh failed");
       return;
      }
 
-   bool want_long = false, want_short = false;
-   VEM_Signal_Evaluate(sym, snap, want_long, want_short);
+   VEMIndicatorSnap entry_snap;
+   if(inp_confirm_bar_enable)
+     {
+      if(!VEM_Indicators_Refresh(sym, tf, sh + 1, entry_snap))
+        {
+         VEM_Log_Verbose("Skip bar: D10 setup bar refresh failed");
+         return;
+        }
+     }
+   else
+      entry_snap = bar_snap;
 
-   VEM_Execution_ProcessBar(sym, tf, sh, snap, want_long, want_short);
+   bool want_long = false, want_short = false;
+   VEM_Signal_Evaluate(sym, tf, sh, want_long, want_short);
+
+   VEM_Execution_ProcessBar(sym, tf, sh, bar_snap, entry_snap, want_long, want_short);
   }
 
 //+------------------------------------------------------------------+

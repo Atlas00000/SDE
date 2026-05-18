@@ -1,0 +1,15 @@
+# Compiled
+*.ex5
+
+# Python
+__pycache__/
+*.pyc
+scripts/step_b_run_log.txt
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.log
+
+# Local export / scratch (not part of MT5 install tree)
+_vem-git-root/

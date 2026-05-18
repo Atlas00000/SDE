@@ -133,6 +133,147 @@ inline bool VEM_Risk_CheckBBWidth(const VEMIndicatorSnap &s, string &reason)
    return true;
   }
 
+// Require deeper RSI extreme on signal bar (Step B5 / D7).
+inline bool VEM_Risk_CheckRSIDepth(const ENUM_ORDER_TYPE otype, const VEMIndicatorSnap &s,
+                                   string &reason)
+  {
+   if(!inp_rsi_depth_filter_enable)
+     {
+      reason = "";
+      return true;
+     }
+   if(!s.valid)
+     {
+      reason = "rsi depth filter: invalid indicator snap";
+      return false;
+     }
+
+   if(otype == ORDER_TYPE_BUY && inp_rsi_depth_long_enable)
+     {
+      if(s.rsi > inp_rsi_long_max_depth)
+        {
+         reason = StringFormat("long RSI %.2f > max depth %.2f", s.rsi, inp_rsi_long_max_depth);
+         return false;
+        }
+     }
+   else if(otype == ORDER_TYPE_SELL && inp_rsi_depth_short_enable)
+     {
+      if(s.rsi < inp_rsi_short_min_depth)
+        {
+         reason = StringFormat("short RSI %.2f < min depth %.2f", s.rsi, inp_rsi_short_min_depth);
+         return false;
+        }
+     }
+
+   reason = "";
+   return true;
+  }
+
+// Block fades against strong EMA drift on signal bar (Step B1 "against" bucket / D8).
+inline bool VEM_Risk_CheckEMASlope(const string sym, const ENUM_TIMEFRAMES tf,
+                                   const int signal_shift, const ENUM_ORDER_TYPE otype,
+                                   string &reason)
+  {
+   if(!inp_ema_slope_filter_enable)
+     {
+      reason = "";
+      return true;
+     }
+
+   const double block_bp = inp_ema_slope_block_bp;
+   if(block_bp <= 0.0)
+     {
+      reason = "ema slope filter: block_bp <= 0";
+      return false;
+     }
+
+   double slope_bp = 0.0;
+   if(!VEM_Indicators_EMASlopeBp(sym, tf, signal_shift, slope_bp))
+     {
+      reason = "ema slope filter: slope unavailable";
+      return false;
+     }
+
+   if(otype == ORDER_TYPE_BUY && slope_bp < -block_bp)
+     {
+      reason = StringFormat("long blocked: ema slope %.2f bp < -%.2f", slope_bp, block_bp);
+      return false;
+     }
+   if(otype == ORDER_TYPE_SELL && slope_bp > block_bp)
+     {
+      reason = StringFormat("short blocked: ema slope %.2f bp > +%.2f", slope_bp, block_bp);
+      return false;
+     }
+
+   reason = "";
+   return true;
+  }
+
+// Block entry during band walk (Step B9 / D9).
+inline bool VEM_Risk_CheckBBWalk(const string sym, const ENUM_TIMEFRAMES tf,
+                                 const int signal_shift, const ENUM_ORDER_TYPE otype,
+                                 string &reason)
+  {
+   if(!inp_bb_walk_filter_enable)
+     {
+      reason = "";
+      return true;
+     }
+
+   const int min_closes = MathMax(1, inp_bb_walk_min_closes);
+   const bool is_long = (otype == ORDER_TYPE_BUY);
+   const int walk = VEM_Indicators_BBWalkCount(sym, tf, signal_shift, is_long);
+
+   if(walk >= min_closes)
+     {
+      reason = StringFormat("bb walk %d closes >= %d (%s)",
+                            walk, min_closes, is_long ? "below lower" : "above upper");
+      return false;
+     }
+
+   reason = "";
+   return true;
+  }
+
+// Block fade against HTF EMA drift (Step D11 — H1 continuation gate).
+inline bool VEM_Risk_CheckHtfRegime(const string sym, const datetime signal_bar_time,
+                                    const ENUM_ORDER_TYPE otype, string &reason)
+  {
+   if(!inp_htf_regime_enable)
+     {
+      reason = "";
+      return true;
+     }
+
+   const double block_bp = inp_htf_slope_block_bp;
+   if(block_bp <= 0.0)
+     {
+      reason = "htf regime: block_bp <= 0";
+      return false;
+     }
+
+   double slope_bp = 0.0;
+   if(!VEM_Indicators_HtfSlopeBp(sym, signal_bar_time, slope_bp))
+     {
+      reason = "htf regime: slope unavailable";
+      return false;
+     }
+
+   if(otype == ORDER_TYPE_BUY && slope_bp < -block_bp)
+     {
+      reason = StringFormat("long blocked: htf slope %.2f bp < -%.2f", slope_bp, block_bp);
+      return false;
+     }
+   if(otype == ORDER_TYPE_SELL && slope_bp > block_bp)
+     {
+      reason = StringFormat("short blocked: htf slope %.2f bp > +%.2f", slope_bp, block_bp);
+      return false;
+     }
+
+   reason = "";
+   return true;
+  }
+
 inline bool VEM_Risk_AllowNewTrade(const string sym, const ENUM_TIMEFRAMES tf,
                                    const ENUM_ORDER_TYPE otype, const int signal_shift,
                                    const VEMIndicatorSnap &s, string &reason)
@@ -148,6 +289,14 @@ inline bool VEM_Risk_AllowNewTrade(const string sym, const ENUM_TIMEFRAMES tf,
    if(!VEM_Risk_CheckSession(s.bar_time, reason))
       return false;
    if(!VEM_Risk_CheckBBWidth(s, reason))
+      return false;
+   if(!VEM_Risk_CheckRSIDepth(otype, s, reason))
+      return false;
+   if(!VEM_Risk_CheckEMASlope(sym, tf, signal_shift, otype, reason))
+      return false;
+   if(!VEM_Risk_CheckBBWalk(sym, tf, signal_shift, otype, reason))
+      return false;
+   if(!VEM_Risk_CheckHtfRegime(sym, s.bar_time, otype, reason))
       return false;
    if(!VEM_State_CooldownOk(sym, tf, signal_shift, inp_cooldown_bars))
      {

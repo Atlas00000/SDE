@@ -337,7 +337,9 @@ Set file: `MQL5/Profiles/Tester/vem5m.set` · Log: `Tester/.../logs/20260516.log
 
 **Goal:** Every closed trade becomes one analyzable row.
 
-- [ ] **C1 — Design CSV schema**
+**Status (2026-05-18):** C1 **implemented** — see [`step-c1-d0-experiment.md`](step-c1-d0-experiment.md) · `vem5m_d7_c1_trade_log.set` · `scripts/analyze_vem_trade_log.py`
+
+- [x] **C1 — Design CSV schema**
   - [ ] Filename pattern: e.g. `VEM_trades_SYMBOL_TF.csv` under `MQL5/Files/`
   - [ ] Header row with all column names (document in code comment)
   - [ ] Decide: points vs pips vs ATR-normalized for distances
@@ -423,11 +425,27 @@ Set file: `MQL5/Profiles/Tester/vem5m.set` · Log: `Tester/.../logs/20260516.log
 - [x] D6 IS 2024.01–2026.05 — 724 tr, **+$4.98**, PF **1.03**, DD 8.0%
 - [x] Comparison table OOS row in `baseline-eurusd-m5-20260516.md`
 - [x] **D6 D5 OOS** — **keep** BB width filter (IS backtest pending)
-- [ ] **Defer:** RSI depth (B5), BB walk (B9/B10)
+- [x] **D7 D0 — RSI depth** → [`step-d7-d0-experiment.md`](step-d7-d0-experiment.md)
+- [x] **D7 code** — `inp_rsi_depth_filter_enable`, long max 25 / short min 75
+- [x] **`vem5m_d7_session_bb_rsi.set`**
+- [x] D7 IS/OOS vs `vem5m_d6_session_bbwidth.set` — conditional keep; **habitat base locked to D7** (2026-05-16)
+- [x] **D8 / D8b** — EMA slope **DISCARD** → [`step-d8-d0-experiment.md`](step-d8-d0-experiment.md)
+- [x] **D9** — BB walk **DISCARD** (OOS −$4.81 vs D7 +$6) → [`step-d9-d0-experiment.md`](step-d9-d0-experiment.md)
+- [x] **E8a** — failure exit **DISCARD** (OOS −$4.65, WR 47% vs D7 69%) → [`step-e8a-d0-experiment.md`](step-e8a-d0-experiment.md)
+- [x] **E7** — breakeven v1 **DISCARD** (null vs D7) → [`step-e7-d0-experiment.md`](step-e7-d0-experiment.md)
+- [x] **E9 code** — partial midline + `vem5m_e9_d7_partial_midline.set` → [`step-e9-d0-experiment.md`](step-e9-d0-experiment.md)
+- [x] **E9** — **DISCARD** (same as D7 @ 0.02) → [`step-e9-d0-experiment.md`](step-e9-d0-experiment.md)
+- [x] **E8b** — time-in-loss **DISCARD** (OOS −$4.48, WR ~34% vs D7 69%) → [`step-e8b-d0-experiment.md`](step-e8b-d0-experiment.md)
+- [x] **E8c** — worse structure **KEEP** → [`step-e8c-d0-experiment.md`](step-e8c-d0-experiment.md)
+- [x] **Production:** **`vem5m_d7_session_bb_rsi.set` @ 0.01** — D7 habitat + **E8c** (midline + structural scratch)
 
 **Exit criteria for Step D (filter #1):** Session filter validated IS + OOS vs baseline on same window — **done 2026-05-16**.
 
-**Filter queue (after Step E):** (2) BB width → (3) RSI → (4) BB walk trial optional.
+**Working habitat (Phase 2b):** **`vem5m_d7_session_bb_rsi.set`** — D1 + D6 + D7. D6-only set = benchmark only.
+
+**Phase 2b (D7 habitat + simple exits):** **Complete** — see [`filtersrecommedations.md`](filtersrecommedations.md) master list.
+
+**Phase 2c complete (practical):** Production **D7+E8c** locked. E10 parked, E11 null, D8–D11 discard. Next: **demo/live** or backlog D12/E12. Profiles: [`trade-profile.md`](trade-profile.md).
 
 ---
 
@@ -480,6 +498,7 @@ When PF and drawdown are acceptable in **habitat** on OOS data, consider Phase 3
 - `step-d-d0-experiment.md` — Step D0 locked experiment (filter #1 session)
 - `step-e-results.md` · `step-e-d0-experiment.md` — Step E MAE/MFE + E6 defer
 - `step-d6-d0-experiment.md` — Step D6 filter #2 (BB width)
+- `step-d7-d0-experiment.md` — Step D7 filter #3 (RSI depth)
 - `edgeopt.md` — full isolation philosophy and examples
 - `concept.md` — v1 signal definition and optimization groups (safe vs structural inputs)
 - `roadmap.md` — Phase 1 scope; session/filters explicitly deferred until engine is stable
