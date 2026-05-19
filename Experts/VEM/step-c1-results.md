@@ -1,60 +1,50 @@
 # Step C1 — Trade log analysis
 
-**Source:** `Terminal\Common\Files\VEM_trades_EURUSD_M5.csv`  
-**Analyzed:** 2026-05-18  
-**Trades logged:** **373** (2024.01.04 → 2026.04.29)
+**Source:** `C:\Users\emili\AppData\Roaming\MetaQuotes\Terminal\Common\Files\VEM_trades_EURUSD_M5.csv`
+**Trades:** 111
 
-**Sanity vs D7:** Full IS = **270** tr · OOS = **119** tr. **373** rows ≈ **D6 OOS trade count** or a **longer/custom window** — confirm tester dates + `vem5m_d7_c1_trade_log.set`. Data quality for E10 tuning is still valid.
+### Winners (n=78)
 
-| Check | Value |
-|-------|--------|
-| Net P/L (CSV sum) | **+$10.86** |
-| Win rate | **66.5%** (248 W / 125 L) |
-| Exit mix | midline **342** · sl **29** · tp **2** |
-| Logging | **OK** — MAE/MFE + bar 5/6 populated |
+| Metric | Median | 75th % |
+|--------|--------|--------|
+| MAE (R) final | 0.175 | 0.295 |
+| MFE (R) final | 0.305 | 0.443 |
+| MAE @ bar 5 | 0.155 | 0.290 |
+| MFE @ bar 5 | 0.205 | 0.280 |
+| MAE @ bar 6 | 0.160 | 0.295 |
+| MFE @ bar 6 | 0.220 | 0.300 |
 
----
+- Net P/L sum: **$39.17**
+- Win rate: **100.0%**
+- Exit mix: `{'midline': 77, 'tp': 1}`
 
-## Winners vs losers (medians)
+### Losers (n=33)
 
-| Metric | Winners (n=248) | Losers (n=125) |
-|--------|-----------------|----------------|
-| **MAE final (R)** | **0.15** | **0.56** |
-| **MFE final (R)** | **0.26** | **0.08** |
-| **MAE @ bar 6** | **0.16** | **0.31** |
-| **MFE @ bar 6** | **0.18** | **0.08** |
+| Metric | Median | 75th % |
+|--------|--------|--------|
+| MAE (R) final | 0.645 | 0.805 |
+| MFE (R) final | 0.085 | 0.175 |
+| MAE @ bar 5 | 0.300 | 0.470 |
+| MFE @ bar 5 | 0.085 | 0.198 |
+| MAE @ bar 6 | 0.310 | 0.510 |
+| MFE @ bar 6 | 0.085 | 0.198 |
 
-**Matches Step E / full-run story:** winners stay shallow; losers show **low MFE + higher MAE** by close, with separation already visible **@ bar 6**.
+- Net P/L sum: **$-30.09**
+- Win rate: **0.0%**
+- Exit mix: `{'midline': 22, 'sl': 8, 'e8c': 3}`
 
----
+## E10 rule sweep (in-sample on this CSV)
 
-## E10 rule preview (at bar 6: `MFE ≤ X` **and** `MAE ≥ Y`)
+| MFE max | MAE min | Would cut | Cut WR | Cut avg $ | Kept WR | Kept n |
+|--------|---------|-----------|--------|-----------|---------|--------|
+| 0.15 | 0.45 | 9 | 11% | -0.81 | 75% | 75 |
+| 0.15 | 0.50 | 7 | 14% | -0.91 | 73% | 77 |
+| 0.15 | 0.55 | 6 | 17% | -1.06 | 72% | 78 |
+| 0.20 | 0.45 | 10 | 10% | -0.93 | 76% | 74 |
+| 0.20 | 0.50 | 8 | 12% | -1.04 | 74% | 76 |
+| 0.20 | 0.55 | 6 | 17% | -1.06 | 72% | 78 |
+| 0.25 | 0.45 | 11 | 18% | -0.84 | 75% | 73 |
+| 0.25 | 0.50 | 8 | 12% | -1.04 | 74% | 76 |
+| 0.25 | 0.55 | 6 | 17% | -1.06 | 72% | 78 |
 
-| Rule | Would cut | Cut WR | Kept n | Kept WR |
-|------|-----------|--------|--------|---------|
-| MFE ≤ 0.20 & MAE ≥ 0.50 | 34 | 15% | 339 | **72%** |
-| MFE ≤ 0.15 & MAE ≥ 0.45 | ~55 | ~15% | ~318 | **~70%** |
-| MFE ≤ 0.20 & MAE ≥ 0.45 | ~48 | ~15% | ~325 | **~71%** |
-
-**Interpretation:** E10 **can** work on this CSV — cuts are mostly losers, kept WR stays **~70%+**. Trade count cut is **small** (34–55 of 373) with strict thresholds; may need slightly looser bar-6 gate or bar **5** combo in E10 v1.
-
-**Do not use** time-in-loss or MFE-only (E8b/E8a lesson).
-
----
-
-## Recommended E10 v1 (for coding)
-
-| Parameter | Value |
-|-----------|--------|
-| `inp_inv_exit_bars` | **6** |
-| `inp_inv_mfe_max_r` | **0.20** |
-| `inp_inv_mae_min_r` | **0.50** |
-| Hard SL | **unchanged** 200 pts |
-
-Re-validate on **D7 IS (270)** + **OOS (119)** after E10 code — pass bar: OOS WR **≥ 65%**, PF **≥ 1.17**, net **≥ +$6**.
-
----
-
-## Optional: cleaner CSV
-
-Delete CSV → run **only** `2024.01.01–2026.05.15` (IS) or `2025.01.01–2026.05.15` (OOS) once each for exact D7 trade counts.
+_Goal: high cut count among losers, cut WR low, kept WR ≥ ~65%._

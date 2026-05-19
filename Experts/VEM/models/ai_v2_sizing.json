@@ -1,0 +1,9 @@
+{
+  "version": "v0.2",
+  "skip_frac": 0.02,
+  "skip_prob_threshold": 0.874305088039118,
+  "half_lot_prob_min": 0.5010020837435971,
+  "half_lot_val_percentile": 57,
+  "skip_prob_threshold_source": "ai_v1_logistic_bad_trade.json",
+  "policy": "score>=skip: no trade; score>=half_min and <skip: 0.5*lots; else full"
+}

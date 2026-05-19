@@ -260,9 +260,24 @@ After filters, the **aggregate entry** resembles:
 
 ---
 
+## C1 production-path medians (2026-05-19)
+
+**Source:** `VEM_trades_EURUSD_M5.csv` · 459 trades (excl. `e10`) · [`step-c1b-results.md`](step-c1b-results.md)
+
+| Slice | n | WR% | PF | SL |
+|-------|--:|----:|---:|---:|
+| All | 459 | 66.2 | 1.16 | 25 |
+| OOS 2025–26 | 228 | 72.8 | 1.52 | 16 |
+
+**Loser hotspots (not promoted — D1b null):** hour **7** (37 losers, 12 SL); mid/high BB width terciles among losers. **E13/E14 paused** — no full-population bucket ≥30 with PF&lt;1.
+
+**AI v0:** [`step-ai-2-results.md`](step-ai-2-results.md) — loss classifier holdout skip sim **passes** pass bar on mixed CSV but **val AUC weak** → research only until clean C1 re-run.
+
+---
+
 ## Gaps & next precision (optional)
 
-- **Step C CSV** not live — profiles above blend **baseline + Step B buckets + Step E excursions**; medians should be **recomputed on D7-only** closed trades when logging exists.  
+- **Canonical C1:** re-run single backtest `vem5m_d7_c1_trade_log.set` and archive CSV by date (current file mixes runs).  
 - **611 trades** (2024 H1) missing from bar-matched B9–B10 — session hour stats use **full 1,429** deal export.  
 - **Per-side MAE/MFE on D7** — assumed similar shape to D1 session E-results; verify after feature logging.
 

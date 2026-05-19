@@ -56,6 +56,7 @@ int OnInit()
    VEM_Log_Info("Init OK | magic=" + IntegerToString((long)inp_magic) +
                 (inp_ai_shadow_enable ? " | AI shadow ON" : "") +
                 (inp_ai_skip_enable ? " | AI skip ON" : "") +
+                (inp_ai_half_lot_enable ? " | AI half-lot ON" : "") +
                 " | chart=" + sym + " " + EnumToString(Period()) +
                 " | signal_shift=" + IntegerToString(inp_signal_shift));
 

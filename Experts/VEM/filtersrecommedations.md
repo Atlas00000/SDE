@@ -20,7 +20,7 @@
 
 **Current problem:** good/bad entries look similar at signal time; **losers use ~full SL**, winners rarely need 1R → improve PF via **trade-state exits** (cut invalid reversions), not more entry cosmetics.
 
-**Production (default):** `vem5m_d7_session_bb_rsi.set` — D1 + D6 + D7 + **E8c** @ **0.01** · midline on · E8a/E8b/E10 **OFF**.  
+**Default preset:** **`VEM.AI_Skip`** — D1+D6+D7+E8c + ~**2%** entry skip. **Rollback:** **`VEM.Production`** (rules only). Exit R&D **E10/E13/E14 closed (discard)**.  
 **Code defaults:** `VEM_Config.mqh` matches production (no `.set` required).  
 **Benchmark:** `vem5m_d7_habitat_only.set` — same entries, E8c off.  
 **Raw baseline:** `vem5m.set` — habitat + E8c off for Step A comparisons.
@@ -28,7 +28,7 @@
 
 **Phase 2b (entry + simple exits):** **complete** — D8–D9, E7–E9, E8a–E8b discarded.  
 **Phase 2c (expectancy engineering):** **complete** — C1, E8c **KEEP** (production); E10 **park**; D10/D11/E11 **discard**.  
-**Phase 2d (EURUSD loss containment):** **complete** — production locked. **Phase 3 AI (v0.1):** **tester done** — entry skip validated [§9](#9-phase-3--ai-intelligence-layer-sequenced-todos). **Phase 4 AI (v0.2+):** **next** — ↓ avg loss without hurting WR/PF/DD [§10](#10-phase-4--ai-expectancy--avg-loss).
+**Phase 2d (EURUSD loss containment):** **complete** — exit queue **E13/E14 discard**. **Phase 3 AI (v0.1):** **signed off** · default **`VEM.AI_Skip`**. **Phase 4:** **stalled** on exits/sizing — next: **multi-symbol** or deploy [§10](#10-phase-4--ai-expectancy--avg-loss).
 
 **Deployment policy:** **Strategy Tester only** until production + AI gates pass on predetermined metrics. **No live/demo chart debugging** (time constraint). **AI-0 live** runs only after backtest gate clears.
 
@@ -66,8 +66,8 @@
 | **D1b** | — | Habitat | Entry | **Discard null** | Block2 hour **7** — **identical** to prod OOS/IS (111/274 tr) |
 | **D6b** | — | Habitat | Entry | **Discard** | width **0.0015** — IS 238 tr **−$1.35** PF 0.98 vs prod +$3.06 / 1.04 |
 | **D7b** | — | Habitat | Entry | **Discard** | RSI **22/78** — IS 124 tr **−$1.57** PF 0.95 vs prod +$3.06 / 1.04 |
-| **E13** | 7 | Exit — failure | Backlog | **MFE-gated bleed** — bar 12+ and MFE &lt; 0.2R scratch (not time/red alone) |
-| **E14** | 8 | Exit — failure | Backlog | **Soft SL tighten** — after bar 6, if MFE &lt; 0.15R and MAE &gt; 0.4R, SL → −0.5R |
+| **E13** | 7 | Exit — failure | **Discard** | T-E13: 289 tr · **−$1.10** · PF **0.99** · WR **60%** · [`step-e13-results.md`](step-e13-results.md) |
+| **E14** | 8 | Exit — failure | **Discard** | T-E14: 289 tr · **−$2.46** · PF **0.97** · [`step-e14-results.md`](step-e14-results.md) |
 | **E11** | — | Exit — payoff | **Discard null** | Same as production IS/OOS — partial path never differs |
 | **E12** | — | Exit — payoff | Backlog | **ATR trail** after +1R — rare; only if E10/E11 done |
 | **DEV-G** | — | Gate | Dev | **Done** | C1b + 2d paused — [`step-phase3-dev-g.md`](step-phase3-dev-g.md) |
@@ -78,11 +78,11 @@
 | **AI-PASS** | P3 | Gate | Offline | **Done** | Tester T1/T3/T4/T5 · E2–E7 |
 | **AI-4** | P3 | Intelligence | Tester | **Done** | `VEM.AI_Shadow` · [`step-ai4-shadow-backtest.md`](step-ai4-shadow-backtest.md) |
 | **AI-5** | P3 | Intelligence | Tester | **Done** | `VEM.AI_Skip` · 389 tr · OOS +$9.83 / PF 1.34 |
-| **P4-0** | P4 | Gate | — | **Next** | Phase 3 sign-off · production frozen |
-| **P4-1** | P4 | Intelligence | Entry | Backlog | **v0.2** — 0.5× lot on medium P(bad) |
+| **P4-0** | P4 | Gate | — | **Done** | [`step-p4-0-signoff.md`](step-p4-0-signoff.md) · [`PRODUCTION_RUNBOOK.md`](PRODUCTION_RUNBOOK.md) |
+| **P4-1** | P4 | Intelligence | Entry | **Park offline** | v0.2 wired · [`step-ai-v2-sizing-results.md`](step-ai-v2-sizing-results.md) |
+| **P4-3** | P4 | Intelligence | Exit | **Done** | bar matrix · [`step-ai-v3-bar-matrix.md`](step-ai-v3-bar-matrix.md) |
+| **P4-4** | P4 | Intelligence | Exit | **Park** | v0.3 train · [`step-ai-v3-exit-results.md`](step-ai-v3-exit-results.md) |
 | **P4-2** | P4 | Intelligence | Entry | Backlog | **v0.2** — loss-magnitude / tail-risk score |
-| **P4-3** | P4 | Intelligence | Exit | Backlog | **v0.3** — bar-4/6 labels from C1 path (MAE/MFE) |
-| **P4-4** | P4 | Intelligence | Exit | Backlog | **v0.3** — train “invalid reversion” · early scratch |
 | **P4-5** | P4 | Intelligence | Exit | Backlog | Wire AI exit · midline + E8c unchanged |
 | **P4-6** | P4 | Ops | — | Backlog | Retrain + drift on C1 / shadow CSV |
 | **P4-7** | P4 | Scale | — | **Blocked** | Lot scaling / multi-symbol — after avg loss |
@@ -115,8 +115,8 @@ Work **top to bottom**. Each row = one build → IS 2024–2026 + OOS 2025–202
 | **4** | **D1b** | Habitat | **DISCARD null** — no change vs prod · next **D6b** | — |
 | **5** | **D6b** | Habitat | **DISCARD** — prod **0.00165** kept · next **D7b** | — |
 | **6** | **D7b** | Habitat | **DISCARD** — Phase **2d habitat sweep complete** | — |
-| **7** | **E13** | Exit — failure | MFE-gated bleed exit (long hold + low MFE) — only if E8c-v2 / E10-v2 stall | ↓ Type C bleed → SL |
-| **8** | **E14** | Exit — failure | Soft SL tighten (high MAE + low MFE @ bar 6) — not instant scratch | ↓ avg loss size |
+| **7** | **E13** | Exit — failure | **DISCARD** — T-E13 FAIL vs pass bar | — |
+| **8** | **E14** | Exit — failure | **DISCARD** — exit R&D **closed** | — |
 | — | D12, D13, E12 | Backlog | BB/ATR **widening** entry, EMA displacement, ATR trail after +1R | Only if steps 0–8 stall |
 | — | Multi-symbol | — | **Deferred** — need habitat data per pair before parameter transfer | — |
 | — | **DEV-G** → **AI-0…AI-5** | Phase 3 | **Deferred** until dev gate — see §9 (forward/demo is **AI-0**, not “next” during dev) | — |
@@ -276,6 +276,20 @@ Copy the block for the ID you are building. **Do not tick the next ID until curr
 - [x] OOS 113 tr · **+$5.54** · PF **1.16** · WR **69.0%** (prod +$9.08 / 1.30 / 70.3%)
 - [x] **E10 stays OFF** on `vem5m_d7_session_bb_rsi.set` — [`step-e10-v2-d0-experiment.md`](step-e10-v2-d0-experiment.md)
 - [x] **E10 line closed** on production stack
+
+### E13 — Exit: MFE-gated bleed — **DISCARD**
+
+- [x] Rule: bar **12+**, **MFE ≤ 0.20R**, **profit &lt; 0** · `VEM_Execution_CheckBleedExits()`
+- [x] Preset **`VEM.E13_Production`** · charter [`step-e13-d0-experiment.md`](step-e13-d0-experiment.md)
+- [x] **T-E13:** **289** tr · **−$1.10** · PF **0.99** · WR **60.2%** · avg win **$0.44** / loss **$0.68** — [`step-e13-results.md`](step-e13-results.md)
+- [x] **Production:** E13 **OFF** (no promote)
+
+### E14 — Exit: soft SL tighten — **DISCARD**
+
+- [x] Rule: bar **6+**, **MFE ≤ 0.15R**, **MAE ≥ 0.40R** → SL at **−0.5R** · `VEM_Execution_ManageSoftSlTighten()`
+- [x] Presets **`VEM.E14_Production`** · [`step-e14-d0-experiment.md`](step-e14-d0-experiment.md)
+- [x] **T-E14:** **289** tr · **−$2.46** · PF **0.97** · WR **62.6%** — [`step-e14-results.md`](step-e14-results.md)
+- [x] **Exit R&D closed** — default **`VEM.AI_Skip`** · E13/E14/E10 **OFF**
 
 ### D1b — block hour 7 — **DISCARD (null)**
 
@@ -442,7 +456,7 @@ All AI todos (**AI-0** … **AI-5**) and the **AI pass checklist** live in [§9 
 *Not used during dev — tester substitutes AI-1 / AI-4.*
 
 - [ ] **Only after:** production OOS pass bar stable + **AI-5** pass in tester
-- [ ] Deploy **`VEM.Production`** (no AI) on live · journal only
+- [ ] Deploy **`VEM.AI_Skip`** on live (default) · or **`VEM.Production`** rollback · journal only
 - [ ] Rolling metrics vs OOS ref (111 tr / +$9.08 / PF 1.30)
 
 ### AI-1 — Accumulate C1 — **Done**
@@ -499,33 +513,34 @@ All AI todos (**AI-0** … **AI-5**) and the **AI pass checklist** live in [§9 
 
 | Order | ID | Status | One line |
 |:-----:|-----|--------|----------|
-| 0 | **P4-0** | **Next** | Sign off Phase 3 · freeze `VEM.Production` |
-| 1 | **P4-1** | Backlog | v0.2 — **0.5× lot** on medium P(bad) |
+| 0 | **P4-0** | **Done** | [`step-p4-0-signoff.md`](step-p4-0-signoff.md) |
+| 1 | **P4-1** | **Park** | v0.2 wired · OOS sim **FAIL** vs skip-only |
 | 2 | **P4-2** | Backlog | v0.2 — tail-loss / SL probability at entry |
-| 3 | **P4-3** | Backlog | v0.3 — C1 labels @ bar 4–6 (path features) |
-| 4 | **P4-4** | Backlog | v0.3 — train + offline pass on **avg loss R** |
+| 3 | **P4-3** | **Next** | v0.3 — C1 labels @ bar 4–6 (path features) |
+| 4 | **P4-4** | **Park** | v0.3 trained · offline **FAIL** vs prod OOS |
 | 5 | **P4-5** | Backlog | Tester wire — one early-exit hook (E10/E14 bridge) |
 | 6 | **P4-6** | Backlog | Retrain + drift (`validate_ai_shadow.py` pattern) |
 | 7 | **P4-7** | Blocked | Scaling / symbols — after P4 pass |
 
 ---
 
-### P4-0 — Phase 3 sign-off — **Next**
+### P4-0 — Phase 3 sign-off — **Done**
 
 - [x] `VEM.Production` — **396** / +$16.58 / PF 1.17
 - [x] `VEM.AI_Shadow` — scorer parity · no `ai_skip`
 - [x] `VEM.AI_Skip` — **389** / +$20.30 · OOS **109** / +$9.83 / PF 1.34
-- [ ] Document “production = rules only” in live runbook (optional one-pager)
+- [x] Runbook: [`PRODUCTION_RUNBOOK.md`](PRODUCTION_RUNBOOK.md) · sign-off: [`step-p4-0-signoff.md`](step-p4-0-signoff.md)
 
-### P4-1 — AI v0.2 graduated sizing — **Backlog**
+### P4-1 — AI v0.2 graduated sizing — **Park (offline FAIL)**
 
-*Charter (from AI-PASS E5): high P(bad) → skip (done); **medium** → **0.5× lot**; low → full.*
+*Charter: high → skip; medium → **0.5× lot**; low → full.*
 
-- [ ] Define medium band (e.g. P(bad) between val percentiles 85–98)
-- [ ] `train_ai_v2_sizing.py` — offline sim: net $ · PF · WR · avg loss $
-- [ ] `inp_ai_half_lot_enable` + threshold inputs in `VEM_Config.mqh`
-- [ ] Preset `VEM.AI_HalfLot` · tester vs production pass bar
-- [ ] KEEP/DISCARD vs skip-only (marginal $ benefit expected)
+- [x] Medium band: score ∈ **[0.501, 0.874)** · val pct **57** · [`models/ai_v2_sizing.json`](models/ai_v2_sizing.json)
+- [x] `scripts/train_ai_v2_sizing.py` · [`step-ai-v2-sizing-results.md`](step-ai-v2-sizing-results.md)
+- [x] `inp_ai_half_lot_enable` + `inp_ai_half_lot_prob_min` in `VEM_Config.mqh`
+- [x] Preset **`VEM.AI_HalfLot`** (skip + half)
+- [x] Offline OOS: skip+half **$7.81** PF **1.46** vs skip-only **$9.83** / prod **$9.08** → **DISCARD** for promote
+- [ ] Optional tester **`T-HALF`** confirm (not required for P4-3)
 
 ### P4-2 — AI v0.2 tail-risk at entry — **Backlog**
 
@@ -534,21 +549,21 @@ All AI todos (**AI-0** … **AI-5**) and the **AI pass checklist** live in [§9 
 - [ ] Skip or 0.5× only when predicted tail loss high
 - [ ] Compare to P4-1 — pick one sizing/skip policy for wire
 
-### P4-3 — AI v0.3 bar-state data — **Backlog**
+### P4-3 — AI v0.3 bar-state data — **Next**
 
 *Uses C1 path cols — **not** available at signal time (see B4).*
 
-- [ ] Export bar-4/6 feature matrix from `data/c1/` archive
-- [ ] Labels: `label_invalid` = SL OR (loss AND `mae_r_b6 >= 0.5`) OR (e8c AND deep MAE)
+- [x] Export bar-5/6 matrix — `scripts/export_ai_v3_bar_matrix.py` → [`data/c1/ai_v3_bar_matrix.csv`](data/c1/ai_v3_bar_matrix.csv) · [`step-ai-v3-bar-matrix.md`](step-ai-v3-bar-matrix.md)
+- [x] Labels: `label_invalid` (SL / deep loss / bad e8c) in export + train script
 - [ ] Train/val/test same splits as `manifest.json`
 - [ ] No leakage: features only from bars ≤ 6 after entry
 
-### P4-4 — AI v0.3 offline exit model — **Backlog**
+### P4-4 — AI v0.3 offline exit model — **Park (offline FAIL)**
 
-- [ ] `scripts/train_ai_v3_exit.py` — logistic or shallow HGB
-- [ ] Pass bar: ↓ **avg loss R** · OOS PF **≥ 1.30** · WR **≥ 65%** · net **≥ $9.08**
-- [ ] Report: exit mix change (% SL vs e8c vs midline) · [`step-ai-v3-exit-results.md`](step-ai-v3-exit-results.md) when run
-- [ ] Export weights → `models/ai_v3_exit_*.json` + MQL5 include
+- [x] `scripts/train_ai_v3_exit.py` — logistic · [`step-ai-v3-exit-results.md`](step-ai-v3-exit-results.md)
+- [x] Val AUC **0.71** · test b6 AUC **0.88** — but **no thr** beats prod OOS **$9.08** on sweep
+- [x] Export **`models/ai_v3_exit_logistic.json`** · `offline_recommendation: no_wire`
+- [ ] MQL5 include + tester — **P4-5** only if new hypothesis (narrower band / bar-4 features)
 
 ### P4-5 — Wire in-trade AI exit — **Backlog**
 
@@ -567,6 +582,6 @@ All AI todos (**AI-0** … **AI-5**) and the **AI pass checklist** live in [§9 
 
 ### P4-7 — Scale & deploy — **Blocked**
 
-- [ ] Live **AI-0** with `VEM.Production` only
-- [ ] Optional promote `VEM.AI_Skip` / `VEM.AI_Exit` after P4 pass
+- [ ] Live **AI-0** with **`VEM.AI_Skip`** (default) · rollback `VEM.Production`
+- [ ] Exit AI (`VEM.AI_Exit`) — **not pursued** (P4 exit R&D closed)
 - [ ] Lot scaling · multi-symbol — **out of scope** until P4 stall or pass

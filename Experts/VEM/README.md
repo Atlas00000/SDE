@@ -12,8 +12,8 @@
 |---|---|
 | **Style** | Mean-reversion fades at BB extremes + volume spike |
 | **Symbol / TF** | **EURUSD M5** (locked until multi-symbol gate) |
-| **Production preset** | **`VEM.Production`** — rules only, **no AI** |
-| **AI trading preset** | **`VEM.AI_Skip`** — production + ~2% entry veto |
+| **Default preset** | **`VEM.AI_Skip`** — production rules + ~**2%** AI entry veto |
+| **Rollback preset** | **`VEM.Production`** — rules only, **no AI** |
 | **Lot size** | **0.01** fixed (scaling deferred to Phase 4+) |
 
 ### Validated metrics (Strategy Tester · 2023–2026)
@@ -52,12 +52,15 @@ Load via **Inputs → Load** (files under `MQL5/Profiles/Tester/`).
 
 | Preset | AI | C1 log | Use |
 |--------|:--:|:------:|-----|
-| **`VEM.Production`** | Off | Off | **Default** · live candidate |
+| **`VEM.AI_Skip`** | Entry skip | Off | **Default** · tester + promoted stack |
+| **`VEM.Production`** | Off | Off | Rollback · rules-only baseline |
 | **`VEM.C1_Production`** | Off | On | Trade archive / retrain data |
 | **`VEM.AI_Shadow`** | Log only | On | Scorer parity · no order change |
-| **`VEM.AI_Skip`** | Entry skip | Off | AI-active trading in tester |
+| **`VEM.AI_HalfLot`** | Skip + 0.5× lot | Off | P4-1 experiment — **park** offline ([`step-ai-v2-sizing-results.md`](step-ai-v2-sizing-results.md)) |
+| **`VEM.E13_Production`** | E13 bleed exit | Off | **Discard** — [`step-e13-results.md`](step-e13-results.md) |
+| **`VEM.E14_Production`** | E14 soft SL −0.5R | Off | **Discard** — [`step-e14-results.md`](step-e14-results.md) |
 
-**Important:** After loading a preset, confirm **AI v0.1** inputs — `VEM.AI_Shadow` forces `inp_ai_skip_enable=false` (MT5 otherwise keeps the last value).
+**Important:** After loading a preset, confirm **AI v0.1** inputs — `VEM.AI_Shadow` forces `inp_ai_skip_enable=false` (MT5 otherwise keeps the last value). Half-lot defaults **off** on `VEM.Production` / `VEM.AI_Skip`.
 
 ---
 
@@ -81,11 +84,15 @@ Load via **Inputs → Load** (files under `MQL5/Profiles/Tester/`).
 
 Results: [`step-ai-v1-results.md`](step-ai-v1-results.md) · [`step-ai4-shadow-backtest.md`](step-ai4-shadow-backtest.md)
 
+**Phase 4 (v0.3 exit):** `python scripts/export_ai_v3_bar_matrix.py` then `python scripts/train_ai_v3_exit.py` — see [`step-ai-v3-exit-results.md`](step-ai-v3-exit-results.md) (**park**, no EA wire).
+
 ---
 
-## Phase 4 — next (↓ avg loss)
+## Phase 3 — signed off · Phase 4 — active
 
-After Phase 3 sign-off. See **[`filtersrecommedations.md` §10](filtersrecommedations.md#10-phase-4--ai-expectancy--avg-loss)**.
+**P4-0 done:** [`step-p4-0-signoff.md`](step-p4-0-signoff.md) · [`PRODUCTION_RUNBOOK.md`](PRODUCTION_RUNBOOK.md)
+
+**Next:** **P4-1** (half-lot) — see **[`filtersrecommedations.md` §10](filtersrecommedations.md#10-phase-4--ai-expectancy--avg-loss)**.
 
 | ID | Focus |
 |----|--------|
@@ -172,5 +179,5 @@ python scripts/export_ai_model_mqh.py
 ---
 
 <p align="center">
-  <sub>VEM · Phase 2d production locked · Phase 3 AI v0.1 tester-validated · Phase 4 avg-loss roadmap active</sub>
+  <sub>VEM · Production frozen · Phase 3 closed · Phase 4 open (P4-1 next)</sub>
 </p>

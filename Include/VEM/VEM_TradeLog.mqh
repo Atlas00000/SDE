@@ -82,6 +82,21 @@ static VEMTradeLogTrack g_vem_tlog[VEM_TLOG_MAX];
 static int              g_vem_tlog_n = 0;
 static int              g_vem_tlog_handle = INVALID_HANDLE;
 static bool             g_vem_tlog_header_ok = false;
+static ulong            g_vem_tlog_pending_pos = 0;
+static string           g_vem_tlog_pending_exit = "";
+
+// Staged before PositionClose — deal comment stays "VEM", so CSV uses this tag.
+inline void VEM_TLog_StageExit(const ulong position_id, const string exit_type)
+  {
+   g_vem_tlog_pending_pos = position_id;
+   g_vem_tlog_pending_exit = exit_type;
+  }
+
+inline void VEM_TLog_ClearPendingExit()
+  {
+   g_vem_tlog_pending_pos = 0;
+   g_vem_tlog_pending_exit = "";
+  }
 
 inline string VEM_TLog_FileName(const string sym, const ENUM_TIMEFRAMES tf)
   {
@@ -159,6 +174,12 @@ inline string VEM_TLog_ExitTypeFromDeal(const ulong deal_ticket)
       return "tp";
    if(StringFind(cl, "fail") >= 0 || StringFind(cl, "e8") >= 0)
       return "fail_exit";
+   if(StringFind(cl, "e8c") >= 0 || StringFind(cl, "worse") >= 0)
+      return "e8c";
+   if(StringFind(cl, "inv") >= 0 || StringFind(cl, "e10") >= 0)
+      return "e10";
+   if(StringFind(cl, "e13") >= 0 || StringFind(cl, "bleed") >= 0)
+      return "e13";
    return "midline";
   }
 
@@ -375,7 +396,13 @@ inline void VEM_TradeLog_OnTransaction(const string sym, const ENUM_TIMEFRAMES t
    g_vem_tlog[idx].profit_acc += HistoryDealGetDouble(trans.deal, DEAL_PROFIT) +
                                 HistoryDealGetDouble(trans.deal, DEAL_SWAP) +
                                 HistoryDealGetDouble(trans.deal, DEAL_COMMISSION);
-   g_vem_tlog[idx].exit_type_last = VEM_TLog_ExitTypeFromDeal(trans.deal);
+   string exit_tag = VEM_TLog_ExitTypeFromDeal(trans.deal);
+   if(g_vem_tlog_pending_pos == pos_id && g_vem_tlog_pending_exit != "")
+     {
+      exit_tag = g_vem_tlog_pending_exit;
+      VEM_TLog_ClearPendingExit();
+     }
+   g_vem_tlog[idx].exit_type_last = exit_tag;
 
    if(!VEM_TLog_PositionOpen(sym, pos_id))
       VEM_TradeLog_Finalize(sym, tf, idx, exit_time, exit_px);

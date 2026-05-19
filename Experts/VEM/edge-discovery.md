@@ -445,7 +445,7 @@ Set file: `MQL5/Profiles/Tester/vem5m.set` · Log: `Tester/.../logs/20260516.log
 
 **Phase 2b (D7 habitat + simple exits):** **Complete** — see [`filtersrecommedations.md`](filtersrecommedations.md) master list.
 
-**Phase 2c complete (practical):** Production **D7+E8c** locked. E10 parked, E11 null, D8–D11 discard. Next: **demo/live** or backlog D12/E12. Profiles: [`trade-profile.md`](trade-profile.md).
+**Phase 2c complete (practical):** Production **D7+E8c** locked. E10 parked, E11 null, D8–D11 discard. **Phase 2d complete.** Dev next: **C1b** / optional E13–E14. **Forward/demo + AI layer:** [`filtersrecommedations.md`](filtersrecommedations.md) §9 (**DEV-G** → **AI-0…AI-5**) — not until dev gate. Profiles: [`trade-profile.md`](trade-profile.md).
 
 ---
 
@@ -486,7 +486,7 @@ A Baseline → B Hypotheses → D filter #1 session (D0–D5) → E exits (E1–
 
 Step C can run in parallel but is **not** required before D3/D4 or before starting E (tester MAE/MFE charts are enough to begin E1–E2 qualitatively).
 
-When PF and drawdown are acceptable in **habitat** on OOS data, consider Phase 3 (confidence scoring / ML). Not before.
+When **DEV-G** is met (locked prod + C1b + rule queue paused), use Phase 3 sequence in [`filtersrecommedations.md`](filtersrecommedations.md) §9: **AI-0** demo → **AI-1** C1 accumulate → **AI-2…AI-5** offline model → simulate → shadow → wire. Not during active Phase 2d backtest sweeps.
 
 ---
 

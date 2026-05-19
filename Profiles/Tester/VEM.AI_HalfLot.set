@@ -1,5 +1,5 @@
-; VEM default — production rules + ~2% AI entry skip (AI-5 validated)
-; Load: VEM.AI_Skip · rollback: VEM.Production · E13/E14 must stay OFF
+; VEM P4-1 — skip + 0.5x lot on medium P(bad) [half_min, skip)
+; Load: VEM.AI_HalfLot · offline sim: see step-ai-v2-sizing-results.md
 ;
 ; saved on 2026.05.19
 ;
@@ -70,25 +70,13 @@ inp_fail_exit_enable=false||false||0||true||N
 inp_worse_struct_exit_enable=true||false||0||true||N
 inp_worse_struct_exit_bars=4||4||1||12||N
 inp_worse_struct_min_pen_pts=0||0||0||50||N
-; E10 / E13 / E14 off (exit R&D closed)
+; E10 / trade log (off)
 inp_inv_exit_enable=false||false||0||true||N
-inp_inv_exit_bars=6||6||1||12||N
-inp_inv_mfe_max_r=0.2||0.2||0.020000||2.000000||N
-inp_inv_mae_min_r=0.5||0.5||0.050000||5.000000||N
-inp_e13_bleed_exit_enable=false||false||0||true||N
-inp_e13_bleed_min_bars=12||12||1||24||N
-inp_e13_mfe_max_r=0.2||0.2||0.020000||2.000000||N
-inp_e13_require_loss=true||false||0||true||N
-inp_e14_soft_sl_enable=false||false||0||true||N
-inp_e14_min_bars=6||6||1||12||N
-inp_e14_mfe_max_r=0.15||0.15||0.015000||1.500000||N
-inp_e14_mae_min_r=0.4||0.4||0.040000||4.000000||N
-inp_e14_sl_loss_r=0.5||0.5||0.050000||5.000000||N
 inp_trade_log_enable=false||false||0||true||N
 inp_trade_log_snap_bar=6||6||5||12||N
-; AI v0.1 (default ON)
+; AI v0.1 + v0.2
 inp_ai_shadow_enable=false||false||0||true||N
 inp_ai_skip_enable=true||false||0||true||N
 inp_ai_skip_prob_threshold=0.874305088039118||0.874305088039118||0.087431||8.743051||N
-inp_ai_half_lot_enable=false||false||0||true||N
+inp_ai_half_lot_enable=true||false||0||true||N
 inp_ai_half_lot_prob_min=0.5010020837435971||0.5010020837435971||0.050100||5.010021||N

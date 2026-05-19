@@ -73,6 +73,13 @@ inline bool VEM_Risk_CheckMaxPositions(const string sym, const long magic, strin
    return true;
   }
 
+inline bool VEM_Risk_HourInBlock(const int hour, const int block_start, const int block_end)
+  {
+   const int h_start = MathMin(block_start, block_end);
+   const int h_end = MathMax(block_start, block_end);
+   return (hour >= h_start && hour <= h_end);
+  }
+
 // Signal-bar hour in server time (matches Strategy Tester report / Step B6).
 inline bool VEM_Risk_CheckSession(const datetime signal_bar_time, string &reason)
   {
@@ -90,12 +97,21 @@ inline bool VEM_Risk_CheckSession(const datetime signal_bar_time, string &reason
    MqlDateTime dt;
    TimeToStruct(signal_bar_time, dt);
    const int hour = dt.hour;
-   const int h_start = MathMin(inp_block_hour_start, inp_block_hour_end);
-   const int h_end = MathMax(inp_block_hour_start, inp_block_hour_end);
 
-   if(hour >= h_start && hour <= h_end)
+   if(VEM_Risk_HourInBlock(hour, inp_block_hour_start, inp_block_hour_end))
      {
+      const int h_start = MathMin(inp_block_hour_start, inp_block_hour_end);
+      const int h_end = MathMax(inp_block_hour_start, inp_block_hour_end);
       reason = StringFormat("session block hour %d (blocked %d-%d)", hour, h_start, h_end);
+      return false;
+     }
+
+   if(inp_session_block2_enable &&
+      VEM_Risk_HourInBlock(hour, inp_block2_hour_start, inp_block2_hour_end))
+     {
+      const int h2_start = MathMin(inp_block2_hour_start, inp_block2_hour_end);
+      const int h2_end = MathMax(inp_block2_hour_start, inp_block2_hour_end);
+      reason = StringFormat("session block2 hour %d (blocked %d-%d)", hour, h2_start, h2_end);
       return false;
      }
 

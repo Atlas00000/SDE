@@ -24,5 +24,25 @@
     "status": "done",
     "current": 396,
     "note": "396 trades 2023-2026; delete CSV before next tester run to avoid duplicate append"
+  },
+  "phase3_signoff": {
+    "date": "2026-05-19",
+    "status": "done",
+    "doc": "step-p4-0-signoff.md",
+    "production_preset": "VEM.Production",
+    "default_operating_preset": "VEM.AI_Skip",
+    "tester_gate": ["T1-PROD", "T3-SHADOW", "T4-SKIP", "T5-ROLLBACK"]
+  },
+  "phase4": {
+    "status": "stalled_exits_closed",
+    "next_id": "multi-symbol-pilot",
+    "default_preset": "VEM.AI_Skip",
+    "rollback_preset": "VEM.Production",
+    "e13_status": "discard_tester",
+    "e14_status": "discard_tester",
+    "p4_1_status": "park_offline_oos_fail",
+    "p4_4_status": "park_offline_no_wire",
+    "exit_rd": "closed",
+    "goal": "deploy AI_Skip; optional second symbol with same pass bar"
   }
 }

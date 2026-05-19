@@ -88,12 +88,37 @@ inline double VEM_AI_ScoreBadTrade(const string sym, const VEMIndicatorSnap &ent
    return VEM_AI_Sigmoid(z);
   }
 
+inline double VEM_AI_SkipThreshold()
+  {
+   if(inp_ai_skip_prob_threshold > 0.0)
+      return inp_ai_skip_prob_threshold;
+   return VEM_AI_SKIP_THRESH_DEFAULT;
+  }
+
 inline bool VEM_AI_WouldSkip(const double score)
   {
-   const double thr = inp_ai_skip_prob_threshold > 0.0
-                      ? inp_ai_skip_prob_threshold
-                      : VEM_AI_SKIP_THRESH_DEFAULT;
-   return score >= thr;
+   return score >= VEM_AI_SkipThreshold();
+  }
+
+inline bool VEM_AI_WouldHalfLot(const double score)
+  {
+   if(!inp_ai_half_lot_enable)
+      return false;
+   const double skip_thr = VEM_AI_SkipThreshold();
+   const double half_min = inp_ai_half_lot_prob_min;
+   if(half_min <= 0.0 || half_min >= skip_thr)
+      return false;
+   return (score >= half_min && score < skip_thr);
+  }
+
+// 0 = skip entry, 0.5 = half size, 1.0 = full
+inline double VEM_AI_EntryLotMultiplier(const double score)
+  {
+   if(inp_ai_skip_enable && VEM_AI_WouldSkip(score))
+      return 0.0;
+   if(VEM_AI_WouldHalfLot(score))
+      return 0.5;
+   return 1.0;
   }
 
 #endif // VEM_AI_MQH

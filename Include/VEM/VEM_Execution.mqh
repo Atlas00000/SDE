@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //| VEM_Execution.mqh                                                |
-//| Exit precedence: (1) E7 BE (2) midline (3) E10 (4) E8c structure |
-//| (5) E8a/E8b (6) opposite signal (7) broker SL/TP.                |
+//| Exit precedence: (1) E7 BE (2) E14 soft SL (3) midline (4) E10 |
+//| (5) E8c (6) E13 (7) E8a/E8b (8) opposite (9) broker SL/TP.     |
 //+------------------------------------------------------------------+
 #ifndef VEM_EXECUTION_MQH
 #define VEM_EXECUTION_MQH
@@ -401,6 +401,113 @@ inline void VEM_Execution_ManageBreakeven(const string sym, const ENUM_TIMEFRAME
      }
   }
 
+inline double VEM_Exec_SlPriceAtLossR(const ENUM_POSITION_TYPE ptype, const double entry,
+                                      const double sl_dist, const double loss_r)
+  {
+   if(sl_dist <= 0.0 || loss_r <= 0.0)
+      return 0.0;
+   if(ptype == POSITION_TYPE_BUY)
+      return entry - loss_r * sl_dist;
+   return entry + loss_r * sl_dist;
+  }
+
+inline bool VEM_Exec_SlNeedsTightenToLossR(const ENUM_POSITION_TYPE ptype, const double sl,
+                                          const double target_sl, const string sym)
+  {
+   if(sl <= 0.0 || target_sl <= 0.0)
+      return true;
+   const double pt = SymbolInfoDouble(sym, SYMBOL_POINT);
+   const double tol = MathMax(pt, pt * 3.0);
+   if(ptype == POSITION_TYPE_BUY)
+      return (sl < target_sl - tol);
+   return (sl > target_sl + tol);
+  }
+
+inline void VEM_Execution_ManageSoftSlTighten(const string sym, const ENUM_TIMEFRAMES tf,
+                                              const VEMIndicatorSnap &s)
+  {
+   if(!inp_e14_soft_sl_enable || !s.valid)
+      return;
+
+   const int min_bars = MathMax(1, inp_e14_min_bars);
+   const double mfe_max = inp_e14_mfe_max_r;
+   const double mae_min = inp_e14_mae_min_r;
+   const double loss_r = inp_e14_sl_loss_r;
+   if(mfe_max <= 0.0 || mae_min <= 0.0 || loss_r <= 0.0 || loss_r >= 1.0)
+      return;
+
+   const int dg = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
+   const double bid = SymbolInfoDouble(sym, SYMBOL_BID);
+   const double ask = SymbolInfoDouble(sym, SYMBOL_ASK);
+
+   const int total = PositionsTotal();
+   for(int i = total - 1; i >= 0; --i)
+     {
+      const ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != sym)
+         continue;
+      if(PositionGetInteger(POSITION_MAGIC) != inp_magic)
+         continue;
+
+      const datetime open_time = (datetime)PositionGetInteger(POSITION_TIME);
+      const int bars_held = VEM_Exec_BarsInTrade(sym, tf, open_time);
+      if(bars_held < min_bars)
+         continue;
+
+      const ENUM_POSITION_TYPE ptype = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+      const double entry = PositionGetDouble(POSITION_PRICE_OPEN);
+      const double sl = PositionGetDouble(POSITION_SL);
+      const double tp = PositionGetDouble(POSITION_TP);
+
+      double sl_dist = 0.0;
+      if(sl > 0.0)
+         sl_dist = MathAbs(entry - sl);
+      if(sl_dist <= 0.0)
+         sl_dist = VEM_Risk_SlDistancePrice(sym, s);
+      if(sl_dist <= 0.0)
+         continue;
+
+      const int entry_shift = iBarShift(sym, tf, open_time, true);
+      double mae_r = 0.0, mfe_r = 0.0;
+      VEM_Exec_ExcursionsInR(sym, tf, entry_shift, ptype, entry, sl_dist, mae_r, mfe_r);
+
+      if(mfe_r > mfe_max || mae_r < mae_min)
+         continue;
+
+      const double target_sl = VEM_Exec_SlPriceAtLossR(ptype, entry, sl_dist, loss_r);
+      if(target_sl <= 0.0)
+         continue;
+      if(!VEM_Exec_SlNeedsTightenToLossR(ptype, sl, target_sl, sym))
+         continue;
+
+      double new_sl = NormalizeDouble(target_sl, dg);
+      string vr;
+      if(ptype == POSITION_TYPE_BUY)
+        {
+         if(!VEM_Exec_ValidateStopsBuy(sym, bid, new_sl, tp, vr))
+            continue;
+        }
+      else
+        {
+         if(!VEM_Exec_ValidateStopsSell(sym, ask, new_sl, tp, vr))
+            continue;
+        }
+
+      if(!g_vem_trade.PositionModify(ticket, new_sl, tp))
+        {
+         VEM_Log_TradeFail("E14SoftSL", g_vem_trade.ResultRetcode());
+         continue;
+        }
+
+      VEM_Log_Info(StringFormat("E14 soft SL #%s %s bars=%d mfe=%.2fR mae=%.2fR sl=%.5f",
+                                (string)ticket,
+                                ptype == POSITION_TYPE_BUY ? "buy" : "sell",
+                                bars_held, mfe_r, mae_r, new_sl));
+     }
+  }
+
 inline ENUM_VEM_FAIL_EXIT_MODE VEM_Exec_ActiveFailExitMode()
   {
    if(inp_fail_exit_mode != VEM_FAIL_EXIT_OFF)
@@ -545,6 +652,68 @@ inline void VEM_Execution_CheckInvalidationExits(const string sym, const ENUM_TI
                                 (string)ticket,
                                 ptype == POSITION_TYPE_BUY ? "buy" : "sell",
                                 bars_held, mfe_r, mae_r));
+     }
+  }
+
+inline void VEM_Execution_CheckBleedExits(const string sym, const ENUM_TIMEFRAMES tf,
+                                          const VEMIndicatorSnap &s)
+  {
+   if(!inp_e13_bleed_exit_enable || !s.valid)
+      return;
+
+   const int min_bars = MathMax(1, inp_e13_bleed_min_bars);
+   const double mfe_max = inp_e13_mfe_max_r;
+   if(mfe_max <= 0.0)
+      return;
+
+   const int total = PositionsTotal();
+   for(int i = total - 1; i >= 0; --i)
+     {
+      const ulong ticket = PositionGetTicket(i);
+      if(ticket == 0 || !PositionSelectByTicket(ticket))
+         continue;
+      if(PositionGetString(POSITION_SYMBOL) != sym)
+         continue;
+      if(PositionGetInteger(POSITION_MAGIC) != inp_magic)
+         continue;
+
+      const datetime open_time = (datetime)PositionGetInteger(POSITION_TIME);
+      const int bars_held = VEM_Exec_BarsInTrade(sym, tf, open_time);
+      if(bars_held < min_bars)
+         continue;
+
+      if(inp_e13_require_loss && PositionGetDouble(POSITION_PROFIT) >= 0.0)
+         continue;
+
+      const ENUM_POSITION_TYPE ptype = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+      const double entry = PositionGetDouble(POSITION_PRICE_OPEN);
+      double sl_dist = 0.0;
+      const double sl = PositionGetDouble(POSITION_SL);
+      if(sl > 0.0)
+         sl_dist = MathAbs(entry - sl);
+      if(sl_dist <= 0.0)
+         sl_dist = VEM_Risk_SlDistancePrice(sym, s);
+
+      const int entry_shift = iBarShift(sym, tf, open_time, true);
+      double mae_r = 0.0, mfe_r = 0.0;
+      VEM_Exec_ExcursionsInR(sym, tf, entry_shift, ptype, entry, sl_dist, mae_r, mfe_r);
+
+      if(mfe_r > mfe_max)
+         continue;
+
+      const double profit_now = PositionGetDouble(POSITION_PROFIT);
+      VEM_TLog_StageExit((ulong)PositionGetInteger(POSITION_IDENTIFIER), "e13");
+      if(!g_vem_trade.PositionClose(ticket))
+        {
+         VEM_TLog_ClearPendingExit();
+         VEM_Log_TradeFail("BleedExit", g_vem_trade.ResultRetcode());
+         continue;
+        }
+
+      VEM_Log_Info(StringFormat("E13 bleed exit #%s %s bars=%d mfe=%.2fR mae=%.2fR profit=%.2f",
+                                (string)ticket,
+                                ptype == POSITION_TYPE_BUY ? "buy" : "sell",
+                                bars_held, mfe_r, mae_r, profit_now));
      }
   }
 
@@ -738,19 +907,25 @@ inline void VEM_Execution_ManageExits(const string sym, const ENUM_TIMEFRAMES tf
    // (1) Breakeven — lock SL before midline close / giveback
    VEM_Execution_ManageBreakeven(sym, tf, s);
 
-   // (2) Mean-reversion: BB midline (full, E9, or E11 conditional partial)
+   // (2) Soft SL tighten (E14) — cap loss before scratch exits
+   VEM_Execution_ManageSoftSlTighten(sym, tf, s);
+
+   // (3) Mean-reversion: BB midline (full, E9, or E11 conditional partial)
    VEM_Execution_MidlineExits(sym, tf, s);
 
-   // (3) MAE/MFE invalidation (E10) — before structural / E8
+   // (4) MAE/MFE invalidation (E10) — before structural / E8
    VEM_Execution_CheckInvalidationExits(sym, tf, s);
 
-   // (4) BB penetration worsened (E8c) — before E8a/E8b
+   // (5) BB penetration worsened (E8c) — before late bleed / E8a/E8b
    VEM_Execution_CheckWorseStructureExits(sym, tf, s);
 
-   // (5) Failure-to-revert (E8a/E8b) — before full SL
+   // (6) Late low-MFE bleed (E13) — Type C; after E8c window
+   VEM_Execution_CheckBleedExits(sym, tf, s);
+
+   // (7) Failure-to-revert (E8a/E8b) — before full SL
    VEM_Execution_CheckFailureExits(sym, tf, s);
 
-   // (6) Emergency / regime flip
+   // (8) Emergency / regime flip
    if(inp_exit_opposite_signal)
      {
       if(VEM_State_HasBuy(sym, inp_magic) && want_short)
@@ -766,23 +941,38 @@ inline void VEM_Execution_ManageExits(const string sym, const ENUM_TIMEFRAMES tf
      }
   }
 
-inline bool VEM_Exec_AiBlocksEntry(const string sym, const ENUM_TIMEFRAMES tf,
-                                   const int signal_shift,
-                                   const VEMIndicatorSnap &entry_s,
-                                   const ENUM_ORDER_TYPE otype)
+inline double VEM_Exec_AiEntryLotMult(const string sym, const ENUM_TIMEFRAMES tf,
+                                      const int signal_shift,
+                                      const VEMIndicatorSnap &entry_s,
+                                      const ENUM_ORDER_TYPE otype,
+                                      string &ai_reason)
   {
-   if(!inp_ai_skip_enable || !entry_s.valid)
-      return false;
+   ai_reason = "";
+   if(!entry_s.valid)
+      return 1.0;
+   if(!inp_ai_skip_enable && !inp_ai_half_lot_enable)
+      return 1.0;
 
    const bool is_sell = (otype == ORDER_TYPE_SELL);
    const double score = VEM_AI_ScoreBadTrade(sym, entry_s, is_sell);
-   if(!VEM_AI_WouldSkip(score))
-      return false;
+   const double mult = VEM_AI_EntryLotMultiplier(score);
 
-   VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, otype, false, "ai_skip");
-   VEM_Log_Verbose(StringFormat("Skip %s: ai_score=%.4f >= threshold",
-                                is_sell ? "sell" : "buy", score));
-   return true;
+   if(mult <= 0.0)
+     {
+      ai_reason = "ai_skip";
+      VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, otype, false, ai_reason);
+      VEM_Log_Verbose(StringFormat("Skip %s: ai_score=%.4f >= skip %.4f",
+                                   is_sell ? "sell" : "buy", score, VEM_AI_SkipThreshold()));
+      return 0.0;
+     }
+   if(mult < 1.0)
+     {
+      ai_reason = "ai_half_lot";
+      VEM_Log_Verbose(StringFormat("Half lot %s: ai_score=%.4f [%.4f, %.4f)",
+                                   is_sell ? "sell" : "buy", score,
+                                   inp_ai_half_lot_prob_min, VEM_AI_SkipThreshold()));
+     }
+   return mult;
   }
 
 inline bool VEM_Execution_OpenBuy(const string sym, const ENUM_TIMEFRAMES tf,
@@ -797,7 +987,9 @@ inline bool VEM_Execution_OpenBuy(const string sym, const ENUM_TIMEFRAMES tf,
       return false;
      }
 
-   if(VEM_Exec_AiBlocksEntry(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY))
+   string ai_r;
+   const double ai_mult = VEM_Exec_AiEntryLotMult(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY, ai_r);
+   if(ai_mult <= 0.0)
       return false;
 
    const double ask = SymbolInfoDouble(sym, SYMBOL_ASK);
@@ -823,6 +1015,7 @@ inline bool VEM_Execution_OpenBuy(const string sym, const ENUM_TIMEFRAMES tf,
      }
 
    double lots = VEM_Risk_CalculateLots(sym, ORDER_TYPE_BUY, ask, sl, r);
+   lots = VEM_Risk_NormalizeVolume(sym, lots * ai_mult);
    if(StringLen(r))
       VEM_Log_Verbose(StringFormat("Lots note: %s", r));
    const double vmin = SymbolInfoDouble(sym, SYMBOL_VOLUME_MIN);
@@ -839,7 +1032,7 @@ inline bool VEM_Execution_OpenBuy(const string sym, const ENUM_TIMEFRAMES tf,
       return false;
      }
 
-   VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY, true, "");
+   VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY, true, ai_r);
    VEM_State_SetLastEntryBarTime(entry_s.bar_time);
    VEM_TradeLog_RegisterEntry(sym, tf, entry_s, ORDER_TYPE_BUY, ask, sl_dist, g_vem_trade.ResultDeal());
    if(inp_worse_struct_exit_enable)
@@ -863,7 +1056,9 @@ inline bool VEM_Execution_OpenSell(const string sym, const ENUM_TIMEFRAMES tf,
       return false;
      }
 
-   if(VEM_Exec_AiBlocksEntry(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL))
+   string ai_r;
+   const double ai_mult = VEM_Exec_AiEntryLotMult(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL, ai_r);
+   if(ai_mult <= 0.0)
       return false;
 
    const double bid = SymbolInfoDouble(sym, SYMBOL_BID);
@@ -889,6 +1084,7 @@ inline bool VEM_Execution_OpenSell(const string sym, const ENUM_TIMEFRAMES tf,
      }
 
    double lots = VEM_Risk_CalculateLots(sym, ORDER_TYPE_SELL, bid, sl, r);
+   lots = VEM_Risk_NormalizeVolume(sym, lots * ai_mult);
    if(StringLen(r))
       VEM_Log_Verbose(StringFormat("Lots note: %s", r));
    const double vmin = SymbolInfoDouble(sym, SYMBOL_VOLUME_MIN);
@@ -905,7 +1101,7 @@ inline bool VEM_Execution_OpenSell(const string sym, const ENUM_TIMEFRAMES tf,
       return false;
      }
 
-   VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL, true, "");
+   VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL, true, ai_r);
    VEM_State_SetLastEntryBarTime(entry_s.bar_time);
    VEM_TradeLog_RegisterEntry(sym, tf, entry_s, ORDER_TYPE_SELL, bid, sl_dist, g_vem_trade.ResultDeal());
    if(inp_worse_struct_exit_enable)

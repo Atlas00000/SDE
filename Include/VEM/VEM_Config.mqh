@@ -206,16 +206,37 @@ input int              inp_inv_exit_bars            = 6;
 input double           inp_inv_mfe_max_r             = 0.20;  // exit when MFE <= this (R)
 input double           inp_inv_mae_min_r             = 0.50;  // E10-v2 v1 test: 0.45
 
+//=== Bleed exit E13 (Step E13 — late low-MFE scratch) ================
+// Production stack + E8c: VEM.E13_Production — bar 12+, MFE<=0.20R, optional in-loss.
+// Type C losers (long hold, no reversion); not time/red alone.
+input group "Bleed exit (E13)"
+input bool             inp_e13_bleed_exit_enable      = false;
+input int              inp_e13_bleed_min_bars         = 12;
+input double           inp_e13_mfe_max_r              = 0.20;  // exit when MFE <= this (R)
+input bool             inp_e13_require_loss             = true;  // also POSITION_PROFIT < 0
+
+//=== Soft SL tighten E14 (Step E14 — cap loss at −0.5R) ==============
+// Production stack test: VEM.E14_Production — bar 6+, MFE<0.15R, MAE>0.4R → SL at −0.5R.
+input group "Soft SL tighten (E14)"
+input bool             inp_e14_soft_sl_enable           = false;
+input int              inp_e14_min_bars               = 6;
+input double           inp_e14_mfe_max_r              = 0.15;  // tighten when MFE <= this
+input double           inp_e14_mae_min_r              = 0.40;  // and MAE >= this
+input double           inp_e14_sl_loss_r              = 0.50;  // new SL distance (R loss)
+
 //=== Trade log C1 (Step C — CSV per closed trade) ===================
 // File: MQL5/Files/VEM_trades_<SYMBOL>_<TF>.csv — enable on D7 backtests for E10 tuning.
 input group "Trade log (C1)"
 input bool             inp_trade_log_enable          = false;
 input int              inp_trade_log_snap_bar        = 6;      // snapshot MAE/MFE at this bar count (also bar 5)
 
-//=== AI v0.1 (tester only until live gate) ===========================
+//=== AI v0.1 / v0.2 (tester only until live gate) ====================
 input group "AI v0.1 (tester)"
 input bool             inp_ai_shadow_enable           = false;  // AI-4: log score, no order change
 input bool             inp_ai_skip_enable             = false;  // AI-5: block entry when would_skip
 input double           inp_ai_skip_prob_threshold     = 0.874305088039118;  // P(bad) >= skip (~2%)
+input group "AI v0.2 (tester)"
+input bool             inp_ai_half_lot_enable           = false;  // P4-1: 0.5x lot in medium band
+input double           inp_ai_half_lot_prob_min       = 0.5010020837435971;  // half if score in [min, skip)
 
 #endif // VEM_CONFIG_MQH
