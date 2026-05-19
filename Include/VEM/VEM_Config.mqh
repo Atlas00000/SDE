@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //| VEM_Config.mqh                                                   |
-//| Phase 1 inputs — grouped; safe vs structural per concept.md    |
+//| Inputs — defaults = production EURUSD M5 (vem5m_d7_session_bb_rsi.set) |
 //+------------------------------------------------------------------+
 #ifndef VEM_CONFIG_MQH
 #define VEM_CONFIG_MQH
@@ -43,56 +43,50 @@ input bool             inp_log_verbose           = false;
 input group "Signal bar"
 input int              inp_signal_shift          = 1;       // closed bar (1 = last closed)
 
-//=== Indicators =====================================================
-// Defaults below favour M1–M5: faster bands, easier RSI extremes, lighter volume filter.
-// For H1+ mean reversion, raise inp_rsi_ob / lower inp_rsi_os, raise inp_bb_dev, raise inp_vol_spike_mult.
+//=== Indicators (EURUSD M5 production) ==============================
 input group "Bollinger Bands"
-input int              inp_bb_period             = 14;
-input double           inp_bb_dev                = 1.8;
+input int              inp_bb_period             = 20;
+input double           inp_bb_dev                = 2.0;
 
 input group "RSI"
-input int              inp_rsi_period            = 9;
-input double           inp_rsi_ob                = 62.0;
-input double           inp_rsi_os                = 38.0;
+input int              inp_rsi_period            = 14;
+input double           inp_rsi_ob                = 70.0;
+input double           inp_rsi_os                = 30.0;
 
 input group "Volume spike"
-input int              inp_vol_ma_period         = 12;
-input double           inp_vol_spike_mult        = 1.15;
+input int              inp_vol_ma_period         = 20;
+input double           inp_vol_spike_mult        = 1.5;
 
 input group "BB touch / pierce"
 input double           inp_bb_penetration_pts    = 0.0;    // long: Low <= Lower - pts*point
 
 //=== Risk gates =====================================================
 input group "Risk gates"
-input int              inp_max_spread_pts        = 80;
-input int              inp_max_positions_total   = 2;
-input int              inp_cooldown_bars         = 0;
+input int              inp_max_spread_pts        = 50;
+input int              inp_max_positions_total   = 1;
+input int              inp_cooldown_bars         = 1;
 input double           inp_max_dd_pct            = 0.0;     // 0 = off; block if (Bal-Equity)/Bal*100 exceeds
 
 //=== Session filter (Step D1 — habitat) ===========================
-// Hypothesis: mean reversion fails during NY overlap (server hours 13–15).
-// D5 2026-05-16: keep — IS/OOS beat baseline on net $ and DD (see baseline-eurusd-m5-20260516.md).
-// Default OFF so vem5m.set reproduces Step A baseline; use vem5m_d1_session.set with enable=true.
+// Production ON: block server hours 13–15. Disable for Step A baseline (vem5m.set).
 input group "Session filter"
-input bool             inp_session_filter_enable = false;
-input int              inp_block_hour_start       = 13;      // inclusive, server time
+input bool             inp_session_filter_enable = true;
+input int              inp_block_hour_start       = 13;      // inclusive, server time (D1)
 input int              inp_block_hour_end         = 15;      // inclusive, server time
+input bool             inp_session_block2_enable  = false;   // D1b: second window (e.g. hour 7)
+input int              inp_block2_hour_start      = 7;
+input int              inp_block2_hour_end        = 7;
 
 //=== BB width filter (Step D6 — habitat) ==========================
-// Hypothesis: wide bands = continuation/noise; block entries above width ratio.
-// Ratio = (BB upper - lower) / middle on signal bar. Calibrated p66.7 on OOS bars (~0.00165).
-// D6 OOS 2026-05-16: keep with session — 373 tr / -$4.58 vs session-only 701 / -$13.69.
-// Default OFF; stack on session via vem5m_d6_session_bbwidth.set.
+// Ratio = (BB upper - lower) / middle on signal bar. Production max ~0.00165.
 input group "BB width filter"
-input bool             inp_bb_width_filter_enable = false;
+input bool             inp_bb_width_filter_enable = true;
 input double           inp_bb_max_width_ratio     = 0.00165; // block if ratio > this; 0 with filter off
 
 //=== RSI depth filter (Step D7 — habitat) =========================
-// Hypothesis: shallow band touches fail — need deeper OS (long) / OB (short) at signal bar.
-// B5: longs 25-30 and shorts 70-75/75-80 worst; deep_<20 and >=75-80 better.
-// Default OFF; stack on D6 via vem5m_d7_session_bb_rsi.set.
+// Long RSI <= 25; short RSI >= 75 on signal bar.
 input group "RSI depth filter"
-input bool             inp_rsi_depth_filter_enable = false;
+input bool             inp_rsi_depth_filter_enable = true;
 input bool             inp_rsi_depth_long_enable  = true;   // if false, no long depth gate
 input bool             inp_rsi_depth_short_enable = true;   // if false, no short depth gate
 input double           inp_rsi_long_max_depth      = 25.0;   // long: signal RSI must be <= this
@@ -147,11 +141,11 @@ input double           inp_risk_pct             = 0.0;     // 0 = use fixed lots
 
 input group "SL / TP"
 input ENUM_VEM_SL_MODE inp_sl_mode               = VEM_SL_FIXED_POINTS;
-input int              inp_sl_points             = 120;
-input double           inp_sl_atr_mult           = 1.2;
+input int              inp_sl_points             = 200;
+input double           inp_sl_atr_mult           = 1.5;
 input ENUM_VEM_TP_MODE inp_tp_mode               = VEM_TP_FIXED_RR;
-input double           inp_tp_rr                 = 1.3;
-input int              inp_tp_points             = 180;
+input double           inp_tp_rr                 = 1.5;
+input int              inp_tp_points             = 300;
 
 input group "Execution"
 input uint             inp_slippage_pts          = 20;
@@ -197,25 +191,31 @@ input double           inp_fail_exit_min_mfe_r       = 0.2;   // E8a only
 input bool             inp_fail_exit_outside_bb      = true;   // E8a only
 
 //=== Worse-structure exit E8c (Step E8c — BB penetration deepens) =====
-// After N bars: close further outside band than at entry (not merely still outside — E8a).
+// Production ON @ bar 4. Habitat-only: vem5m_d7_habitat_only.set (enable=false).
 input group "Worse structure exit (E8c)"
-input bool             inp_worse_struct_exit_enable  = false;
-input int              inp_worse_struct_exit_bars    = 4;
-input int              inp_worse_struct_min_pen_pts  = 0;     // extra pts beyond entry penetration
+input bool             inp_worse_struct_exit_enable  = true;
+input int              inp_worse_struct_exit_bars    = 4;     // E8c-bar: test 3 or 5 via tester .set
+input int              inp_worse_struct_min_pen_pts  = 0;     // E8c-v2: min deepen vs entry (points); 0 = any deepen
 
-//=== Invalidation exit E10 (Step E10 — MAE/MFE state scratch) =======
-// After N bars: low MFE + high MAE => continuation / no revert — close before full SL.
-// C1 tuned: bar 6, MFE <= 0.20R, MAE >= 0.50R. Not time-in-loss (E8b) or MFE-only (E8a).
+//=== Invalidation exit E10 (Step E10 / E10-v2 — MAE/MFE state scratch) =======
+// Stack on production (E8c on): vem5m_e10v2_prod_mae045.set — bar 6, MFE<=0.20, MAE>=0.45.
+// Legacy habitat-only: vem5m_e10_d7_invalidation.set (MAE 0.50, no E8c). Prod default: OFF.
 input group "Invalidation exit (E10)"
 input bool             inp_inv_exit_enable           = false;
 input int              inp_inv_exit_bars            = 6;
 input double           inp_inv_mfe_max_r             = 0.20;  // exit when MFE <= this (R)
-input double           inp_inv_mae_min_r             = 0.50;  // and MAE >= this (R)
+input double           inp_inv_mae_min_r             = 0.50;  // E10-v2 v1 test: 0.45
 
 //=== Trade log C1 (Step C — CSV per closed trade) ===================
 // File: MQL5/Files/VEM_trades_<SYMBOL>_<TF>.csv — enable on D7 backtests for E10 tuning.
 input group "Trade log (C1)"
 input bool             inp_trade_log_enable          = false;
 input int              inp_trade_log_snap_bar        = 6;      // snapshot MAE/MFE at this bar count (also bar 5)
+
+//=== AI v0.1 (tester only until live gate) ===========================
+input group "AI v0.1 (tester)"
+input bool             inp_ai_shadow_enable           = false;  // AI-4: log score, no order change
+input bool             inp_ai_skip_enable             = false;  // AI-5: block entry when would_skip
+input double           inp_ai_skip_prob_threshold     = 0.874305088039118;  // P(bad) >= skip (~2%)
 
 #endif // VEM_CONFIG_MQH

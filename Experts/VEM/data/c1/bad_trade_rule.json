@@ -1,0 +1,10 @@
+{
+  "label": "label_bad_trade",
+  "description": "Structural failure / full stop — not small midline scratches",
+  "rules": [
+    "exit_type == 'sl'",
+    "exit_type == 'e8c' AND mae_r >= 0.50",
+    "profit <= 0 AND mae_r >= 0.50"
+  ],
+  "note": "mae_r in R vs 200pt SL. Midline losses with mae_r < 0.5 are NOT bad_trade."
+}

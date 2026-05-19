@@ -1,0 +1,26 @@
+{
+  "features": [
+    "rsi",
+    "bb_width_ratio",
+    "vol_ratio",
+    "spread_pts",
+    "entry_hour",
+    "entry_dow",
+    "side_sell",
+    "rsi_depth"
+  ],
+  "target": "label_loss",
+  "intercept": 0.010741657471647131,
+  "coef": {
+    "rsi": -0.052329299034269104,
+    "bb_width_ratio": 0.04355149428794545,
+    "vol_ratio": -0.057258260490203064,
+    "spread_pts": 0.46210920151320234,
+    "entry_hour": 0.15175719755649386,
+    "entry_dow": 0.20287342199094144,
+    "side_sell": 0.1256478633151244,
+    "rsi_depth": -0.003671375713697499
+  },
+  "train_end": "2024-12-31",
+  "val_end": "2025-06-30"
+}

@@ -14,6 +14,7 @@
 #include <VEM/VEM_Risk.mqh>
 #include <VEM/VEM_Execution.mqh>
 #include <VEM/VEM_TradeLog.mqh>
+#include <VEM/VEM_AIShadow.mqh>
 
 static datetime g_vem_last_bar_open = 0;
 
@@ -50,8 +51,11 @@ int OnInit()
    VEM_State_OnInit();
    VEM_Execution_Init(sym);
    VEM_TradeLog_OnInit(sym, Period());
+   VEM_AIShadow_OnInit(sym, Period());
 
    VEM_Log_Info("Init OK | magic=" + IntegerToString((long)inp_magic) +
+                (inp_ai_shadow_enable ? " | AI shadow ON" : "") +
+                (inp_ai_skip_enable ? " | AI skip ON" : "") +
                 " | chart=" + sym + " " + EnumToString(Period()) +
                 " | signal_shift=" + IntegerToString(inp_signal_shift));
 
@@ -62,6 +66,7 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+   VEM_AIShadow_OnDeinit();
    VEM_TradeLog_OnDeinit();
    VEM_Indicators_Deinit();
    VEM_Log_Verbose("Deinit reason=" + (string)reason);

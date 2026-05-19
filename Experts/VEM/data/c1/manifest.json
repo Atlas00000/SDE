@@ -1,0 +1,28 @@
+{
+  "rules_version": "VEM.C1_Production",
+  "archived_csv": "VEM_trades_EURUSD_M5_prod_2023_2026_396.csv",
+  "source_notes": "D1+D6+D7+E8c · 2023.01-2026.05 · deduped entry_time+side",
+  "counts": {
+    "total": 396,
+    "oos_2025_2026": 111,
+    "oos_net_usd": 9.08,
+    "full_span_net_usd": 16.58
+  },
+  "splits": {
+    "train_end": "2023-12-31",
+    "val_end": "2024-12-31",
+    "description": "train=2023 (122) · val=2024 (163) · test=2025+ (111 OOS)"
+  },
+  "oos_pass_window": {
+    "start": "2025-01-01",
+    "end": "2026-05-15",
+    "description": "AI-3 D pass bar vs production tester evidence"
+  },
+  "a2_target": {
+    "min_trades": 400,
+    "max_trades": 600,
+    "status": "done",
+    "current": 396,
+    "note": "396 trades 2023-2026; delete CSV before next tester run to avoid duplicate append"
+  }
+}
