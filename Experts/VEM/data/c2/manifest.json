@@ -1,0 +1,41 @@
+{
+  "log_schema": 2,
+  "rules_version": "VEM.C2_Production",
+  "archived_csv": "VEM_trades_v2_EURUSD_M5_prod_20260529.csv",
+  "labeled_csv": "VEM_trades_v2_EURUSD_M5_prod_20260529_labeled.csv",
+  "source_notes": "P5 C2 \u2014 D1+D6+D7+E8c \u00b7 structure + bar-4/5/6 path",
+  "c2_status": "archived",
+  "splits": {
+    "train_end": "2023-12-31",
+    "val_end": "2024-12-31",
+    "description": "same as data/c1/manifest.json"
+  },
+  "oos_pass_window": {
+    "start": "2025-01-01",
+    "end": "2026-05-15"
+  },
+  "counts": {
+    "total": 408,
+    "oos_2025_2026": 119,
+    "oos_net_usd": 6.83,
+    "full_span_net_usd": 14.93,
+    "splits": {
+      "train": 122,
+      "val": 163,
+      "test": 123
+    }
+  },
+  "next_id": "deploy",
+  "p45_status": "park_no_wire",
+  "p45_note": "High AUC but early MTM exit hurts OOS; keep E8c+midline",
+  "b7_status": "done",
+  "entry_filter_from": "2023-01-01",
+  "label_rules": "label_rules.json",
+  "label_counts": {
+    "bad_entry_pct": 16.9,
+    "early_cut_pct": 10.0,
+    "profile_bad_pct": 18.9
+  },
+  "ai6_status": "park",
+  "ai6_best_model": "none"
+}

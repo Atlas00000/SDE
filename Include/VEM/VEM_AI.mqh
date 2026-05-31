@@ -9,6 +9,7 @@
 
 // Auto-generated weights (scripts/export_ai_model_mqh.py)
 #include <VEM/VEM_AI_Model.inc.mqh>
+#include <VEM/VEM_AI_Tail_Model.inc.mqh>
 
 inline double VEM_AI_Sigmoid(const double z)
   {
@@ -88,6 +89,37 @@ inline double VEM_AI_ScoreBadTrade(const string sym, const VEMIndicatorSnap &ent
    return VEM_AI_Sigmoid(z);
   }
 
+inline double VEM_AI_ScoreTailLoss(const string sym, const VEMIndicatorSnap &entry_s,
+                                   const bool is_sell)
+  {
+   if(!entry_s.valid)
+      return 0.0;
+
+   MqlDateTime dt;
+   TimeToStruct(entry_s.bar_time, dt);
+
+   const double rsi = entry_s.rsi;
+   const double bbw = VEM_AI_BbWidthRatio(entry_s);
+   const double volr = VEM_AI_VolRatio(entry_s);
+   const double spr = (double)VEM_AI_SpreadPts(sym);
+   const double hour = (double)dt.hour;
+   const double dow = (double)dt.day_of_week;
+   const double side_s = is_sell ? 1.0 : 0.0;
+   const double depth = VEM_AI_RsiDepth(is_sell, rsi);
+
+   double z = VEM_AI_TAIL_INTERCEPT;
+   z += VEM_AI_TAIL_COEF_RSI * VEM_AI_StdScale(rsi, VEM_AI_TAIL_MEAN_RSI, VEM_AI_TAIL_SCALE_RSI);
+   z += VEM_AI_TAIL_COEF_BB_WIDTH_RATIO * VEM_AI_StdScale(bbw, VEM_AI_TAIL_MEAN_BB_WIDTH_RATIO, VEM_AI_TAIL_SCALE_BB_WIDTH_RATIO);
+   z += VEM_AI_TAIL_COEF_VOL_RATIO * VEM_AI_StdScale(volr, VEM_AI_TAIL_MEAN_VOL_RATIO, VEM_AI_TAIL_SCALE_VOL_RATIO);
+   z += VEM_AI_TAIL_COEF_SPREAD_PTS * VEM_AI_StdScale(spr, VEM_AI_TAIL_MEAN_SPREAD_PTS, VEM_AI_TAIL_SCALE_SPREAD_PTS);
+   z += VEM_AI_TAIL_COEF_ENTRY_HOUR * VEM_AI_StdScale(hour, VEM_AI_TAIL_MEAN_ENTRY_HOUR, VEM_AI_TAIL_SCALE_ENTRY_HOUR);
+   z += VEM_AI_TAIL_COEF_ENTRY_DOW * VEM_AI_StdScale(dow, VEM_AI_TAIL_MEAN_ENTRY_DOW, VEM_AI_TAIL_SCALE_ENTRY_DOW);
+   z += VEM_AI_TAIL_COEF_SIDE_SELL * VEM_AI_StdScale(side_s, VEM_AI_TAIL_MEAN_SIDE_SELL, VEM_AI_TAIL_SCALE_SIDE_SELL);
+   z += VEM_AI_TAIL_COEF_RSI_DEPTH * VEM_AI_StdScale(depth, VEM_AI_TAIL_MEAN_RSI_DEPTH, VEM_AI_TAIL_SCALE_RSI_DEPTH);
+
+   return VEM_AI_Sigmoid(z);
+  }
+
 inline double VEM_AI_SkipThreshold()
   {
    if(inp_ai_skip_prob_threshold > 0.0)
@@ -95,9 +127,21 @@ inline double VEM_AI_SkipThreshold()
    return VEM_AI_SKIP_THRESH_DEFAULT;
   }
 
+inline double VEM_AI_TailSkipThreshold()
+  {
+   if(inp_ai_tail_skip_prob_threshold > 0.0)
+      return inp_ai_tail_skip_prob_threshold;
+   return VEM_AI_TAIL_SKIP_THRESH_DEFAULT;
+  }
+
 inline bool VEM_AI_WouldSkip(const double score)
   {
    return score >= VEM_AI_SkipThreshold();
+  }
+
+inline bool VEM_AI_WouldSkipTail(const double tail_score)
+  {
+   return tail_score >= VEM_AI_TailSkipThreshold();
   }
 
 inline bool VEM_AI_WouldHalfLot(const double score)
@@ -111,12 +155,14 @@ inline bool VEM_AI_WouldHalfLot(const double score)
    return (score >= half_min && score < skip_thr);
   }
 
-// 0 = skip entry, 0.5 = half size, 1.0 = full
-inline double VEM_AI_EntryLotMultiplier(const double score)
+// 0 = skip entry, 0.5 = half size, 1.0 = full (bad_trade + optional tail skip)
+inline double VEM_AI_EntryLotMultiplier(const double bad_score, const double tail_score)
   {
-   if(inp_ai_skip_enable && VEM_AI_WouldSkip(score))
+   if(inp_ai_skip_enable && VEM_AI_WouldSkip(bad_score))
       return 0.0;
-   if(VEM_AI_WouldHalfLot(score))
+   if(inp_ai_tail_skip_enable && VEM_AI_WouldSkipTail(tail_score))
+      return 0.0;
+   if(VEM_AI_WouldHalfLot(bad_score))
       return 0.5;
    return 1.0;
   }

@@ -1,0 +1,99 @@
+{
+  "version": "B7",
+  "description": "Multi-label spec for C2 archive — separate entry skip, exit cut, regime, and profile tags",
+  "leakage": {
+    "entry_models_may_use": [
+      "rsi", "bb_width_ratio", "vol_ratio", "spread_pts", "entry_hour", "entry_dow",
+      "rsi_depth", "bb_walk_count", "wick_pct", "ema_slope_bp", "atr_ratio", "bb_pen_pts",
+      "htf_slope_bp", "side", "label_profile_good", "label_profile_bad"
+    ],
+    "entry_models_must_not_use": [
+      "mae_r", "mfe_r", "mae_r_b4", "mfe_r_b4", "mae_r_b5", "mfe_r_b5", "mae_r_b6", "mfe_r_b6",
+      "profit", "exit_type", "bars_held", "label_bad_entry", "label_tail_loss", "label_early_cut"
+    ],
+    "exit_models_may_use": [
+      "mae_r_b4", "mfe_r_b4", "mae_r_b5", "mfe_r_b5", "mae_r_b6", "mfe_r_b6", "bars_held",
+      "label_early_cut"
+    ]
+  },
+  "labels": {
+    "label_bad_entry": {
+      "id": "B7a",
+      "use": "AI-6 entry skip (extends v0.1 label_bad_trade)",
+      "rules": [
+        "exit_type == 'sl'",
+        "exit_type == 'e8c' AND mae_r >= 0.50",
+        "profit <= 0 AND mae_r >= 0.50"
+      ],
+      "params": { "mae_thresh": 0.5 }
+    },
+    "label_tail_loss": {
+      "id": "B7a-tail",
+      "use": "P4-2 tail-risk at entry",
+      "rules": [
+        "exit_type == 'sl'",
+        "mae_r >= 0.75"
+      ],
+      "params": { "mae_thresh": 0.75 }
+    },
+    "label_early_cut": {
+      "id": "B7b",
+      "use": "P4-5 / v0.3 exit — should have cut @ bar 4 or 6",
+      "rules": [
+        "bar6: mfe_r_b6 <= 0.20 AND mae_r_b6 >= 0.50",
+        "bar4: mfe_r_b4 <= 0.15 AND mae_r_b4 >= 0.45"
+      ],
+      "params": { "b6_mfe_max": 0.2, "b6_mae_min": 0.5, "b4_mfe_max": 0.15, "b4_mae_min": 0.45 }
+    },
+    "label_regime": {
+      "id": "B7c",
+      "use": "Offline regime gate (AI-9 later)",
+      "priority": ["trend", "volatile", "chop", "range"],
+      "rules": {
+        "trend": "abs(htf_slope_bp) >= 6.0",
+        "volatile": "bb_width_ratio >= 0.00165",
+        "chop": "bb_walk_count >= 3 AND wick_pct < 12.0",
+        "range": "default"
+      }
+    },
+    "label_profile_good": {
+      "id": "B8",
+      "use": "Entry-only GOOD profile proxy (addtionalnotes.md)",
+      "min_flags": 3,
+      "long_flags": [
+        "rsi_depth >= 2.0",
+        "wick_pct >= 15.0",
+        "vol_ratio >= 1.5",
+        "abs(ema_slope_bp) <= 5.0",
+        "bb_walk_count in [1, 2]"
+      ],
+      "short_flags": [
+        "rsi_depth >= 2.0",
+        "wick_pct >= 15.0",
+        "vol_ratio >= 1.5",
+        "abs(ema_slope_bp) <= 5.0",
+        "bb_walk_count in [1, 2]"
+      ]
+    },
+    "label_profile_bad": {
+      "id": "B8",
+      "use": "Entry-only BAD profile proxy",
+      "min_flags": 2,
+      "long_flags": [
+        "ema_slope_bp < -5.0",
+        "bb_walk_count >= 3",
+        "wick_pct < 10.0",
+        "htf_slope_bp < -6.0"
+      ],
+      "short_flags": [
+        "ema_slope_bp > 5.0",
+        "bb_walk_count >= 3",
+        "wick_pct < 10.0",
+        "htf_slope_bp > 6.0"
+      ]
+    }
+  },
+  "aliases": {
+    "label_bad_trade": "label_bad_entry"
+  }
+}

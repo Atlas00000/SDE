@@ -1,0 +1,85 @@
+; VEM P5 C2 — production stack + Trade Logger v2 CSV
+; Load in Strategy Tester: Inputs → Load → VEM.C2_Production
+; Output: Terminal/Common/Files/VEM_trades_v2_EURUSD_M5.csv
+; After run: python scripts/c2_trade_log.py validate && archive
+;
+; saved on 2026.05.29
+;
+; Structural
+inp_magic=2600511||2600511||1||26005110||N
+inp_trade_comment=VEM
+inp_direction=0||0||0||2||N
+inp_log_verbose=false||false||0||true||N
+; Signal bar
+inp_signal_shift=1||1||1||10||N
+; Bollinger Bands
+inp_bb_period=20||20||1||200||N
+inp_bb_dev=2.0||2.0||0.200000||20.000000||N
+; RSI
+inp_rsi_period=14||14||1||140||N
+inp_rsi_ob=70.0||70.0||7.000000||700.000000||N
+inp_rsi_os=30.0||30.0||3.000000||300.000000||N
+; Volume spike
+inp_vol_ma_period=20||20||1||200||N
+inp_vol_spike_mult=1.5||1.5||0.150000||15.000000||N
+; BB touch / pierce
+inp_bb_penetration_pts=0.0||0.0||0.000000||0.000000||N
+; Risk gates
+inp_max_spread_pts=50||50||1||500||N
+inp_max_positions_total=1||1||1||10||N
+inp_cooldown_bars=1||1||1||10||N
+inp_max_dd_pct=0.0||0.0||0.000000||0.000000||N
+; Session filter (D1)
+inp_session_filter_enable=true||false||0||true||N
+inp_block_hour_start=13||13||1||130||N
+inp_block_hour_end=15||15||1||150||N
+inp_session_block2_enable=false||false||0||true||N
+inp_block2_hour_start=7||7||0||23||N
+inp_block2_hour_end=7||7||0||23||N
+; BB width filter (D6)
+inp_bb_width_filter_enable=true||false||0||true||N
+inp_bb_max_width_ratio=0.00165||0.00165||0.000165||0.016500||N
+; RSI depth filter (D7)
+inp_rsi_depth_filter_enable=true||false||0||true||N
+inp_rsi_depth_long_enable=true||false||0||true||N
+inp_rsi_depth_short_enable=true||false||0||true||N
+inp_rsi_long_max_depth=25.0||25.0||2.500000||250.000000||N
+inp_rsi_short_min_depth=75.0||75.0||7.500000||750.000000||N
+; Regime (off)
+inp_ema_slope_filter_enable=false||false||0||true||N
+inp_bb_walk_filter_enable=false||false||0||true||N
+; Position sizing
+inp_fixed_lots=0.01||0.01||0.001000||0.100000||N
+inp_risk_pct=0.0||0.0||0.000000||0.000000||N
+; SL / TP
+inp_sl_mode=0||0||0||1||N
+inp_sl_points=200||200||1||2000||N
+inp_sl_atr_mult=1.5||1.5||0.150000||15.000000||N
+inp_tp_mode=0||0||0||2||N
+inp_tp_rr=1.5||1.5||0.150000||15.000000||N
+inp_tp_points=300||300||1||3000||N
+; Execution
+inp_slippage_pts=20||20||1||200||N
+inp_deviation_pts=20||20||1||200||N
+; Exits
+inp_exit_bb_midline=true||false||0||true||N
+inp_exit_opposite_signal=false||false||0||true||N
+inp_partial_midline_enable=false||false||0||true||N
+inp_be_enable=false||false||0||true||N
+inp_fail_exit_mode=0||0||0||2||N
+inp_fail_exit_enable=false||false||0||true||N
+; Worse structure (E8c — production)
+inp_worse_struct_exit_enable=true||false||0||true||N
+inp_worse_struct_exit_bars=4||4||1||12||N
+inp_worse_struct_min_pen_pts=0||0||0||50||N
+; E10 / E14 off (production)
+inp_inv_exit_enable=false||false||0||true||N
+inp_e14_soft_sl_enable=false||false||0||true||N
+; AI off
+inp_ai_shadow_enable=false||false||0||true||N
+inp_ai_skip_enable=false||false||0||true||N
+inp_ai_half_lot_enable=false||false||0||true||N
+; Trade log C2 — ON
+inp_trade_log_enable=true||false||0||true||N
+inp_trade_log_schema=2||2||1||2||N
+inp_trade_log_snap_bar=6||6||4||12||N

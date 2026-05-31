@@ -1,8 +1,18 @@
 # VEM production runbook
 
-**Default preset:** **`VEM.AI_Skip`** — production rules + ~**2%** AI entry veto (validated OOS).
+## Operate
 
-**Rollback / rules-only baseline:** **`VEM.Production`** — no AI; use after failed experiments or to verify 396-trade reference.
+| Role | Preset | When |
+|------|--------|------|
+| **Default** | **`VEM.AI_Skip`** | Live, forward test, normal backtest |
+| **Rollback** | **`VEM.Production`** | After any failed experiment; rules-only sanity check |
+
+**`VEM.AI_Skip`:** D1+D6+D7+midline+E8c · ~**2%** AI entry veto · OOS **+$9.83 / PF 1.34 / 109 tr**  
+**`VEM.Production`:** same rules · **no AI** · OOS **+$9.08 / PF 1.30 / 111 tr**
+
+Do **not** use `VEM.AI_Tail_Skip`, E13/E14, or 5% `inp_risk_pct` as operating configs (experimental / not validated).
+
+**Second chart (pilot):** [`MULTI_SYMBOL_PILOT.md`](MULTI_SYMBOL_PILOT.md) · presets **`VEM.Pilot.Production`** / **`VEM.Pilot.AI_Skip`** · magic **2600520**.
 
 ---
 
@@ -54,8 +64,12 @@ If your backtest differs, check: wrong preset · AI left on from prior load · C
 |--------|-----|
 | `VEM.Production` | Rules only — rollback · 396 trades |
 | `VEM.AI_Shadow` | Log scores only — parity check |
+| `VEM.AI_Tail_Shadow` | P4-2: bad + tail scores, no live skip — delete old shadow CSV first |
+| `VEM.AI_Tail_Skip` | P4-2 trial: `AI_Skip` + tail skip — **not default** until tester OOS passes |
 | `VEM.C1_Production` | Same rules + C1 CSV for retrain |
 | `VEM.E13_Production` / `VEM.E14_Production` | **Discard** — do not use |
+| `VEM.Pilot.Production` | New symbol/TF — rules only · C2 log on |
+| `VEM.Pilot.AI_Skip` | Pilot + EURUSD AI skip (after rules pass) |
 
 ---
 
@@ -63,9 +77,11 @@ If your backtest differs, check: wrong preset · AI left on from prior load · C
 
 After any failed experiment:
 
-1. Load **`VEM.AI_Skip`** (default) or **`VEM.Production`** (rules-only)
-2. Verify AI inputs **off** in Inputs tab
-3. Re-run short sanity backtest → **396** trades · **+$16.58** · PF **~1.17**
+1. **Inputs → Load → `VEM.AI_Skip`** (return to default) — or **`VEM.Production`** if you need rules-only baseline
+2. Confirm: **`inp_ai_skip_enable`** = true (`AI_Skip`) or false (`Production`) · tail/shadow/half-lot = false · E13/E14 = false
+3. Sanity backtest (EURUSD M5, 2023–2026, 0.01 lots):
+   - **`VEM.AI_Skip`:** ~**389** tr · **+$20.30** · PF **~1.21**
+   - **`VEM.Production`:** ~**396** tr · **+$16.58** · PF **~1.17**
 
 ---
 

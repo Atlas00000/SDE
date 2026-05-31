@@ -1,0 +1,33 @@
+{
+  "model": "xgboost",
+  "version": "v6_c2",
+  "features": [
+    "rsi",
+    "bb_width_ratio",
+    "vol_ratio",
+    "spread_pts",
+    "entry_hour",
+    "entry_dow",
+    "side_sell",
+    "rsi_depth",
+    "bb_walk_count",
+    "wick_pct",
+    "ema_slope_bp",
+    "atr_ratio",
+    "bb_pen_pts",
+    "htf_slope_bp"
+  ],
+  "target": "label_bad_entry",
+  "skip_frac": 0.0,
+  "skip_prob_threshold": 1.0,
+  "auc_val": 0.5100603621730382,
+  "auc_test": 0.565343258891646,
+  "pass_bar": {
+    "net": 6.830000000000001,
+    "pf": 1.194697833523375,
+    "wr": 68.90756302521008,
+    "n": 119
+  },
+  "model_file": "ai_v6_xgb_bad_entry.ubj",
+  "note": "Native XGB JSON; MT5 wire requires AI-7 export path"
+}

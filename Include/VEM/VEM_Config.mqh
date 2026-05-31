@@ -224,11 +224,13 @@ input double           inp_e14_mfe_max_r              = 0.15;  // tighten when M
 input double           inp_e14_mae_min_r              = 0.40;  // and MAE >= this
 input double           inp_e14_sl_loss_r              = 0.50;  // new SL distance (R loss)
 
-//=== Trade log C1 (Step C — CSV per closed trade) ===================
-// File: MQL5/Files/VEM_trades_<SYMBOL>_<TF>.csv — enable on D7 backtests for E10 tuning.
-input group "Trade log (C1)"
+//=== Trade log C1 / C2 (CSV per closed trade) ========================
+// C1: MQL5/Files/VEM_trades_<SYMBOL>_<TF>.csv
+// C2: MQL5/Files/VEM_trades_v2_<SYMBOL>_<TF>.csv (+ structure + bar-4 path)
+input group "Trade log (C1 / C2)"
 input bool             inp_trade_log_enable          = false;
-input int              inp_trade_log_snap_bar        = 6;      // snapshot MAE/MFE at this bar count (also bar 5)
+input int              inp_trade_log_schema          = 1;      // 1=C1 legacy · 2=C2 (P5 step 1)
+input int              inp_trade_log_snap_bar        = 6;      // snapshot MAE/MFE at bar 5 and this bar
 
 //=== AI v0.1 / v0.2 (tester only until live gate) ====================
 input group "AI v0.1 (tester)"
@@ -238,5 +240,9 @@ input double           inp_ai_skip_prob_threshold     = 0.874305088039118;  // P
 input group "AI v0.2 (tester)"
 input bool             inp_ai_half_lot_enable           = false;  // P4-1: 0.5x lot in medium band
 input double           inp_ai_half_lot_prob_min       = 0.5010020837435971;  // half if score in [min, skip)
+input group "AI P4-2 tail-loss (tester)"
+input bool             inp_ai_tail_shadow_enable      = false;  // log P(tail) in shadow CSV
+input bool             inp_ai_tail_skip_enable        = false;  // skip if P(tail) >= threshold
+input double           inp_ai_tail_skip_prob_threshold = 0.0;   // 0 = use exported default
 
 #endif // VEM_CONFIG_MQH

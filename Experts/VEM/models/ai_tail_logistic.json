@@ -1,0 +1,50 @@
+{
+  "model": "logistic",
+  "version": "p42_tail",
+  "target": "label_tail_loss",
+  "mae_thresh": 0.75,
+  "features": [
+    "rsi",
+    "bb_width_ratio",
+    "vol_ratio",
+    "spread_pts",
+    "entry_hour",
+    "entry_dow",
+    "side_sell",
+    "rsi_depth"
+  ],
+  "intercept": -0.6784515093573588,
+  "coef": {
+    "rsi": 0.050031005709759296,
+    "bb_width_ratio": 0.9810561397310433,
+    "vol_ratio": 0.04232865278026984,
+    "spread_pts": 0.5240944278032391,
+    "entry_hour": 0.19361443266974168,
+    "entry_dow": -0.5208789163670914,
+    "side_sell": -0.36727464328772164,
+    "rsi_depth": -0.2725831494183526
+  },
+  "scaler_mean": {
+    "rsi": 52.89647540983607,
+    "bb_width_ratio": 0.0011890573770491802,
+    "vol_ratio": 2.3552622950819675,
+    "spread_pts": 2.3278688524590163,
+    "entry_hour": 5.172131147540983,
+    "entry_dow": 3.0491803278688523,
+    "side_sell": 0.5491803278688525,
+    "rsi_depth": 2.7538524590163935
+  },
+  "scaler_scale": {
+    "rsi": 27.701956784826802,
+    "bb_width_ratio": 0.00027649250128213476,
+    "vol_ratio": 0.8861972618661123,
+    "spread_pts": 3.2954081887288718,
+    "entry_hour": 5.3219197555430755,
+    "entry_dow": 1.317302627866315,
+    "side_sell": 0.4975754167467603,
+    "rsi_depth": 2.3476910340473705
+  },
+  "skip_prob_threshold": 0.9415,
+  "skip_frac": 0.003521126760563381,
+  "threshold_source": "shadow_combo_retune_2026-05-31"
+}

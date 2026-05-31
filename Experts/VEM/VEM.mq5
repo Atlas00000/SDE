@@ -54,8 +54,9 @@ int OnInit()
    VEM_AIShadow_OnInit(sym, Period());
 
    VEM_Log_Info("Init OK | magic=" + IntegerToString((long)inp_magic) +
-                (inp_ai_shadow_enable ? " | AI shadow ON" : "") +
+                (inp_ai_shadow_enable || inp_ai_tail_shadow_enable ? " | AI shadow ON" : "") +
                 (inp_ai_skip_enable ? " | AI skip ON" : "") +
+                (inp_ai_tail_skip_enable ? " | AI tail-skip ON" : "") +
                 (inp_ai_half_lot_enable ? " | AI half-lot ON" : "") +
                 " | chart=" + sym + " " + EnumToString(Period()) +
                 " | signal_shift=" + IntegerToString(inp_signal_shift));

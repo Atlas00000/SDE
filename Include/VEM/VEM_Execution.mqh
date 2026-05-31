@@ -950,26 +950,30 @@ inline double VEM_Exec_AiEntryLotMult(const string sym, const ENUM_TIMEFRAMES tf
    ai_reason = "";
    if(!entry_s.valid)
       return 1.0;
-   if(!inp_ai_skip_enable && !inp_ai_half_lot_enable)
+   if(!inp_ai_skip_enable && !inp_ai_tail_skip_enable && !inp_ai_half_lot_enable)
       return 1.0;
 
    const bool is_sell = (otype == ORDER_TYPE_SELL);
-   const double score = VEM_AI_ScoreBadTrade(sym, entry_s, is_sell);
-   const double mult = VEM_AI_EntryLotMultiplier(score);
+   const double bad_score = VEM_AI_ScoreBadTrade(sym, entry_s, is_sell);
+   const double tail_score = VEM_AI_ScoreTailLoss(sym, entry_s, is_sell);
+   const double mult = VEM_AI_EntryLotMultiplier(bad_score, tail_score);
 
    if(mult <= 0.0)
      {
-      ai_reason = "ai_skip";
+      if(inp_ai_skip_enable && VEM_AI_WouldSkip(bad_score))
+         ai_reason = "ai_skip";
+      else
+         ai_reason = "ai_tail_skip";
       VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, otype, false, ai_reason);
-      VEM_Log_Verbose(StringFormat("Skip %s: ai_score=%.4f >= skip %.4f",
-                                   is_sell ? "sell" : "buy", score, VEM_AI_SkipThreshold()));
+      VEM_Log_Verbose(StringFormat("Skip %s: bad=%.4f tail=%.4f reason=%s",
+                                   is_sell ? "sell" : "buy", bad_score, tail_score, ai_reason));
       return 0.0;
      }
    if(mult < 1.0)
      {
       ai_reason = "ai_half_lot";
       VEM_Log_Verbose(StringFormat("Half lot %s: ai_score=%.4f [%.4f, %.4f)",
-                                   is_sell ? "sell" : "buy", score,
+                                   is_sell ? "sell" : "buy", bad_score,
                                    inp_ai_half_lot_prob_min, VEM_AI_SkipThreshold()));
      }
    return mult;
@@ -1034,7 +1038,7 @@ inline bool VEM_Execution_OpenBuy(const string sym, const ENUM_TIMEFRAMES tf,
 
    VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY, true, ai_r);
    VEM_State_SetLastEntryBarTime(entry_s.bar_time);
-   VEM_TradeLog_RegisterEntry(sym, tf, entry_s, ORDER_TYPE_BUY, ask, sl_dist, g_vem_trade.ResultDeal());
+   VEM_TradeLog_RegisterEntry(sym, tf, signal_shift, entry_s, ORDER_TYPE_BUY, ask, sl_dist, g_vem_trade.ResultDeal());
    if(inp_worse_struct_exit_enable)
      {
       const ulong nt = VEM_Exec_NewestPositionTicket(sym, POSITION_TYPE_BUY);
@@ -1103,7 +1107,7 @@ inline bool VEM_Execution_OpenSell(const string sym, const ENUM_TIMEFRAMES tf,
 
    VEM_AIShadow_LogAttempt(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL, true, ai_r);
    VEM_State_SetLastEntryBarTime(entry_s.bar_time);
-   VEM_TradeLog_RegisterEntry(sym, tf, entry_s, ORDER_TYPE_SELL, bid, sl_dist, g_vem_trade.ResultDeal());
+   VEM_TradeLog_RegisterEntry(sym, tf, signal_shift, entry_s, ORDER_TYPE_SELL, bid, sl_dist, g_vem_trade.ResultDeal());
    if(inp_worse_struct_exit_enable)
      {
       const ulong nt = VEM_Exec_NewestPositionTicket(sym, POSITION_TYPE_SELL);

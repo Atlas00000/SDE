@@ -11,9 +11,10 @@
 | | |
 |---|---|
 | **Style** | Mean-reversion fades at BB extremes + volume spike |
-| **Symbol / TF** | **EURUSD M5** (locked until multi-symbol gate) |
+| **Symbol / TF** | **EURUSD M5** (production) · pilot: other pair/TF via **`VEM.Pilot.*`** |
 | **Default preset** | **`VEM.AI_Skip`** — production rules + ~**2%** AI entry veto |
 | **Rollback preset** | **`VEM.Production`** — rules only, **no AI** |
+| **Pilot preset** | **`VEM.Pilot.Production`** → [`MULTI_SYMBOL_PILOT.md`](MULTI_SYMBOL_PILOT.md) |
 | **Lot size** | **0.01** fixed (scaling deferred to Phase 4+) |
 
 ### Validated metrics (Strategy Tester · 2023–2026)

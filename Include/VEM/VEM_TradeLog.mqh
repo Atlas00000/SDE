@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| VEM_TradeLog.mqh — Step C1 closed-trade CSV (MAE/MFE + entry)    |
+//| VEM_TradeLog.mqh — C1/C2 closed-trade CSV (MAE/MFE + entry)       |
 //+------------------------------------------------------------------+
 #ifndef VEM_TRADELOG_MQH
 #define VEM_TRADELOG_MQH
@@ -65,13 +65,24 @@ struct VEMTradeLogTrack
    int      spread_pts;
    int      entry_hour;
    int      entry_dow;
+   // C2 entry structure
+   double   rsi_depth;
+   int      bb_walk_count;
+   double   wick_pct;
+   double   ema_slope_bp;
+   double   atr_ratio;
+   double   bb_pen_pts;
+   double   htf_slope_bp;
    double   mae_r;
    double   mfe_r;
+   double   mae_r_b4;
+   double   mfe_r_b4;
    double   mae_r_b5;
    double   mfe_r_b5;
    double   mae_r_b6;
    double   mfe_r_b6;
    int      bars_max;
+   bool     snap4;
    bool     snap5;
    bool     snap6;
    double   profit_acc;
@@ -84,8 +95,73 @@ static int              g_vem_tlog_handle = INVALID_HANDLE;
 static bool             g_vem_tlog_header_ok = false;
 static ulong            g_vem_tlog_pending_pos = 0;
 static string           g_vem_tlog_pending_exit = "";
+static int              g_vem_tlog_htf_ema = INVALID_HANDLE;
 
-// Staged before PositionClose — deal comment stays "VEM", so CSV uses this tag.
+inline bool VEM_TLog_IsV2()
+  {
+   return (inp_trade_log_schema >= 2);
+  }
+
+inline double VEM_TLog_WickPct(const bool is_long, const VEMIndicatorSnap &s)
+  {
+   const double rng = s.high - s.low;
+   if(rng <= 0.0)
+      return 0.0;
+   if(is_long)
+      return 100.0 * (MathMin(s.open, s.close) - s.low) / rng;
+   return 100.0 * (s.high - MathMax(s.open, s.close)) / rng;
+  }
+
+inline double VEM_TLog_BbPenPts(const string sym, const bool is_long, const VEMIndicatorSnap &s)
+  {
+   const double pt = SymbolInfoDouble(sym, SYMBOL_POINT);
+   if(pt <= 0.0)
+      return 0.0;
+   if(is_long)
+      return MathMax(0.0, (s.bb_lower - s.close) / pt);
+   return MathMax(0.0, (s.close - s.bb_upper) / pt);
+  }
+
+inline double VEM_TLog_RsiDepth(const bool is_long, const double rsi)
+  {
+   if(is_long)
+      return MathMax(0.0, inp_rsi_long_max_depth - rsi);
+   return MathMax(0.0, rsi - inp_rsi_short_min_depth);
+  }
+
+inline double VEM_TLog_AtrRatio(const VEMIndicatorSnap &s)
+  {
+   if(s.close <= 0.0)
+      return 0.0;
+   return s.atr / s.close;
+  }
+
+inline bool VEM_TLog_HtfSlopeBp(const string sym, const datetime bar_time, double &slope_bp_out)
+  {
+   slope_bp_out = 0.0;
+   if(g_vem_tlog_htf_ema == INVALID_HANDLE || bar_time <= 0)
+      return false;
+
+   const int shift = iBarShift(sym, inp_htf_timeframe, bar_time, true);
+   if(shift < 0)
+      return false;
+
+   const int lookback = MathMax(1, inp_htf_slope_lookback_bars);
+   double ema_now[], ema_prev[];
+   ArraySetAsSeries(ema_now, true);
+   ArraySetAsSeries(ema_prev, true);
+
+   if(CopyBuffer(g_vem_tlog_htf_ema, 0, shift, 1, ema_now) <= 0)
+      return false;
+   if(CopyBuffer(g_vem_tlog_htf_ema, 0, shift + lookback, 1, ema_prev) <= 0)
+      return false;
+   if(ema_prev[0] <= 0.0)
+      return false;
+
+   slope_bp_out = (ema_now[0] - ema_prev[0]) / ema_prev[0] * 10000.0;
+   return true;
+  }
+
 inline void VEM_TLog_StageExit(const ulong position_id, const string exit_type)
   {
    g_vem_tlog_pending_pos = position_id;
@@ -102,6 +178,8 @@ inline string VEM_TLog_FileName(const string sym, const ENUM_TIMEFRAMES tf)
   {
    string tf_s = EnumToString(tf);
    StringReplace(tf_s, "PERIOD_", "");
+   if(VEM_TLog_IsV2())
+      return StringFormat("VEM_trades_v2_%s_%s.csv", sym, tf_s);
    return StringFormat("VEM_trades_%s_%s.csv", sym, tf_s);
   }
 
@@ -121,11 +199,25 @@ inline bool VEM_TLog_OpenFile(const string sym, const ENUM_TIMEFRAMES tf)
 
    if(!exists || FileSize(g_vem_tlog_handle) == 0)
      {
-      FileWrite(g_vem_tlog_handle,
-                "entry_time", "exit_time", "symbol", "timeframe", "side",
-                "entry_px", "exit_px", "profit", "exit_type", "bars_held",
-                "rsi", "bb_width_ratio", "vol_ratio", "spread_pts", "entry_hour", "entry_dow",
-                "mae_r", "mfe_r", "mae_r_b5", "mfe_r_b5", "mae_r_b6", "mfe_r_b6", "sl_pts");
+      if(VEM_TLog_IsV2())
+        {
+         FileWrite(g_vem_tlog_handle,
+                   "log_schema", "trade_id", "entry_time", "exit_time", "symbol", "timeframe", "side",
+                   "entry_px", "exit_px", "profit", "exit_type", "bars_held",
+                   "rsi", "bb_width_ratio", "vol_ratio", "spread_pts", "entry_hour", "entry_dow",
+                   "rsi_depth", "bb_walk_count", "wick_pct", "ema_slope_bp", "atr_ratio", "bb_pen_pts",
+                   "htf_slope_bp",
+                   "mae_r", "mfe_r", "mae_r_b4", "mfe_r_b4", "mae_r_b5", "mfe_r_b5", "mae_r_b6", "mfe_r_b6",
+                   "sl_pts");
+        }
+      else
+        {
+         FileWrite(g_vem_tlog_handle,
+                   "entry_time", "exit_time", "symbol", "timeframe", "side",
+                   "entry_px", "exit_px", "profit", "exit_type", "bars_held",
+                   "rsi", "bb_width_ratio", "vol_ratio", "spread_pts", "entry_hour", "entry_dow",
+                   "mae_r", "mfe_r", "mae_r_b5", "mfe_r_b5", "mae_r_b6", "mfe_r_b6", "sl_pts");
+        }
       g_vem_tlog_header_ok = true;
      }
    else
@@ -180,7 +272,16 @@ inline string VEM_TLog_ExitTypeFromDeal(const ulong deal_ticket)
       return "e10";
    if(StringFind(cl, "e13") >= 0 || StringFind(cl, "bleed") >= 0)
       return "e13";
+   if(StringFind(cl, "e14") >= 0 || StringFind(cl, "soft") >= 0)
+      return "e14";
    return "midline";
+  }
+
+inline string VEM_TLog_FmtR(const double v)
+  {
+   if(v < 0.0)
+      return "";
+   return DoubleToString(v, 4);
   }
 
 inline void VEM_TLog_WriteRow(const string sym, const ENUM_TIMEFRAMES tf,
@@ -195,29 +296,69 @@ inline void VEM_TLog_WriteRow(const string sym, const ENUM_TIMEFRAMES tf,
    const string side_s = (tr.side > 0) ? "buy" : "sell";
    string tf_s = EnumToString(tf);
    StringReplace(tf_s, "PERIOD_", "");
+   const int digits = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
 
-   FileWrite(g_vem_tlog_handle,
-             TimeToString(tr.entry_time, TIME_DATE | TIME_SECONDS),
-             TimeToString(exit_time, TIME_DATE | TIME_SECONDS),
-             sym, tf_s, side_s,
-             DoubleToString(tr.entry_px, (int)SymbolInfoInteger(sym, SYMBOL_DIGITS)),
-             DoubleToString(exit_px, (int)SymbolInfoInteger(sym, SYMBOL_DIGITS)),
-             DoubleToString(tr.profit_acc, 2),
-             tr.exit_type_last,
-             (string)tr.bars_max,
-             DoubleToString(tr.rsi, 2),
-             DoubleToString(tr.bb_width_ratio, 6),
-             DoubleToString(tr.vol_ratio, 3),
-             (string)tr.spread_pts,
-             (string)tr.entry_hour,
-             (string)tr.entry_dow,
-             DoubleToString(tr.mae_r, 4),
-             DoubleToString(tr.mfe_r, 4),
-             DoubleToString(tr.mae_r_b5, 4),
-             DoubleToString(tr.mfe_r_b5, 4),
-             DoubleToString(tr.mae_r_b6, 4),
-             DoubleToString(tr.mfe_r_b6, 4),
-             DoubleToString(sl_pts, 1));
+   if(VEM_TLog_IsV2())
+     {
+      FileWrite(g_vem_tlog_handle,
+                "2",
+                (string)tr.position_id,
+                TimeToString(tr.entry_time, TIME_DATE | TIME_SECONDS),
+                TimeToString(exit_time, TIME_DATE | TIME_SECONDS),
+                sym, tf_s, side_s,
+                DoubleToString(tr.entry_px, digits),
+                DoubleToString(exit_px, digits),
+                DoubleToString(tr.profit_acc, 2),
+                tr.exit_type_last,
+                (string)tr.bars_max,
+                DoubleToString(tr.rsi, 2),
+                DoubleToString(tr.bb_width_ratio, 6),
+                DoubleToString(tr.vol_ratio, 3),
+                (string)tr.spread_pts,
+                (string)tr.entry_hour,
+                (string)tr.entry_dow,
+                DoubleToString(tr.rsi_depth, 2),
+                (string)tr.bb_walk_count,
+                DoubleToString(tr.wick_pct, 2),
+                DoubleToString(tr.ema_slope_bp, 2),
+                DoubleToString(tr.atr_ratio, 6),
+                DoubleToString(tr.bb_pen_pts, 1),
+                DoubleToString(tr.htf_slope_bp, 2),
+                VEM_TLog_FmtR(tr.mae_r),
+                VEM_TLog_FmtR(tr.mfe_r),
+                VEM_TLog_FmtR(tr.mae_r_b4),
+                VEM_TLog_FmtR(tr.mfe_r_b4),
+                VEM_TLog_FmtR(tr.mae_r_b5),
+                VEM_TLog_FmtR(tr.mfe_r_b5),
+                VEM_TLog_FmtR(tr.mae_r_b6),
+                VEM_TLog_FmtR(tr.mfe_r_b6),
+                DoubleToString(sl_pts, 1));
+     }
+   else
+     {
+      FileWrite(g_vem_tlog_handle,
+                TimeToString(tr.entry_time, TIME_DATE | TIME_SECONDS),
+                TimeToString(exit_time, TIME_DATE | TIME_SECONDS),
+                sym, tf_s, side_s,
+                DoubleToString(tr.entry_px, digits),
+                DoubleToString(exit_px, digits),
+                DoubleToString(tr.profit_acc, 2),
+                tr.exit_type_last,
+                (string)tr.bars_max,
+                DoubleToString(tr.rsi, 2),
+                DoubleToString(tr.bb_width_ratio, 6),
+                DoubleToString(tr.vol_ratio, 3),
+                (string)tr.spread_pts,
+                (string)tr.entry_hour,
+                (string)tr.entry_dow,
+                DoubleToString(tr.mae_r, 4),
+                DoubleToString(tr.mfe_r, 4),
+                DoubleToString(tr.mae_r_b5, 4),
+                DoubleToString(tr.mfe_r_b5, 4),
+                DoubleToString(tr.mae_r_b6, 4),
+                DoubleToString(tr.mfe_r_b6, 4),
+                DoubleToString(sl_pts, 1));
+     }
    FileFlush(g_vem_tlog_handle);
   }
 
@@ -225,6 +366,21 @@ inline void VEM_TradeLog_OnInit(const string sym, const ENUM_TIMEFRAMES tf)
   {
    g_vem_tlog_n = 0;
    g_vem_tlog_header_ok = false;
+
+   if(g_vem_tlog_htf_ema != INVALID_HANDLE)
+     {
+      IndicatorRelease(g_vem_tlog_htf_ema);
+      g_vem_tlog_htf_ema = INVALID_HANDLE;
+     }
+
+   if(inp_trade_log_enable && VEM_TLog_IsV2())
+     {
+      const int htf_ema = MathMax(2, inp_htf_ema_period);
+      g_vem_tlog_htf_ema = iMA(sym, inp_htf_timeframe, htf_ema, 0, MODE_EMA, PRICE_CLOSE);
+      if(g_vem_tlog_htf_ema == INVALID_HANDLE)
+         VEM_Log_Info("TradeLog C2: HTF EMA handle failed (htf_slope_bp will be 0)");
+     }
+
    if(inp_trade_log_enable)
       VEM_TLog_OpenFile(sym, tf);
   }
@@ -232,10 +388,16 @@ inline void VEM_TradeLog_OnInit(const string sym, const ENUM_TIMEFRAMES tf)
 inline void VEM_TradeLog_OnDeinit()
   {
    VEM_TLog_CloseFile();
+   if(g_vem_tlog_htf_ema != INVALID_HANDLE)
+     {
+      IndicatorRelease(g_vem_tlog_htf_ema);
+      g_vem_tlog_htf_ema = INVALID_HANDLE;
+     }
    g_vem_tlog_n = 0;
   }
 
 inline void VEM_TradeLog_RegisterEntry(const string sym, const ENUM_TIMEFRAMES tf,
+                                       const int signal_shift,
                                        const VEMIndicatorSnap &s,
                                        const ENUM_ORDER_TYPE otype, const double entry_px,
                                        const double sl_dist, const ulong deal_ticket)
@@ -254,23 +416,38 @@ inline void VEM_TradeLog_RegisterEntry(const string sym, const ENUM_TIMEFRAMES t
       return;
      }
 
+   const bool is_long = (otype == ORDER_TYPE_BUY);
+
    VEMTradeLogTrack tr;
    ZeroMemory(tr);
    tr.position_id = pos_id;
    tr.entry_time = (datetime)HistoryDealGetInteger(deal_ticket, DEAL_TIME);
    tr.entry_px = entry_px;
-   tr.side = (otype == ORDER_TYPE_BUY) ? 1 : -1;
+   tr.side = is_long ? 1 : -1;
    tr.sl_dist = sl_dist;
    tr.rsi = s.rsi;
-   tr.bb_width_ratio = (s.bb_middle > 0.0) ? (s.bb_upper - s.bb_lower) / s.bb_middle : 0.0;
+   tr.bb_width_ratio = VEM_Indicators_BBWidthRatio(s);
    tr.vol_ratio = (s.volume_ma > 0.0) ? s.volume / s.volume_ma : 0.0;
    tr.spread_pts = (int)SymbolInfoInteger(sym, SYMBOL_SPREAD);
    MqlDateTime dt;
    TimeToStruct(s.bar_time, dt);
    tr.entry_hour = dt.hour;
    tr.entry_dow = dt.day_of_week;
-   tr.mae_r_b5 = tr.mfe_r_b5 = tr.mae_r_b6 = tr.mfe_r_b6 = -1.0;
+   tr.mae_r_b4 = tr.mfe_r_b4 = tr.mae_r_b5 = tr.mfe_r_b5 = tr.mae_r_b6 = tr.mfe_r_b6 = -1.0;
    tr.exit_type_last = "open";
+
+   if(VEM_TLog_IsV2())
+     {
+      tr.rsi_depth = VEM_TLog_RsiDepth(is_long, s.rsi);
+      tr.bb_walk_count = VEM_Indicators_BBWalkCount(sym, tf, signal_shift, is_long);
+      tr.wick_pct = VEM_TLog_WickPct(is_long, s);
+      tr.bb_pen_pts = VEM_TLog_BbPenPts(sym, is_long, s);
+      tr.atr_ratio = VEM_TLog_AtrRatio(s);
+      if(!VEM_Indicators_EMASlopeBp(sym, tf, signal_shift, tr.ema_slope_bp))
+         tr.ema_slope_bp = 0.0;
+      if(!VEM_TLog_HtfSlopeBp(sym, s.bar_time, tr.htf_slope_bp))
+         tr.htf_slope_bp = 0.0;
+     }
 
    g_vem_tlog[g_vem_tlog_n++] = tr;
   }
@@ -316,6 +493,12 @@ inline void VEM_TradeLog_Update(const string sym, const ENUM_TIMEFRAMES tf)
       g_vem_tlog[i].mfe_r = mfe;
       g_vem_tlog[i].bars_max = MathMax(g_vem_tlog[i].bars_max, bars);
 
+      if(bars >= 4 && !g_vem_tlog[i].snap4)
+        {
+         g_vem_tlog[i].mae_r_b4 = mae;
+         g_vem_tlog[i].mfe_r_b4 = mfe;
+         g_vem_tlog[i].snap4 = true;
+        }
       if(bars >= 5 && !g_vem_tlog[i].snap5)
         {
          g_vem_tlog[i].mae_r_b5 = mae;
