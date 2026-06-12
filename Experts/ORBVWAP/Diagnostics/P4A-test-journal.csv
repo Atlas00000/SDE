@@ -1,0 +1,6 @@
+task_id,preset,partial_pct,partial_at_mult,runner_tp_mult,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,payoff_ratio,verdict,notes
+P4A,PROD_EURUSD-M1,0,1.0,0,184,54.35,1.34,18.54,3.24,0.72,-0.64,1.12,prod_ref,Compare each P4A variant vs this (ratio metrics)
+P4A,ORBVWAP_P4A-001_Partial50_Run15x_PROD_EURUSD-M1_full,50,1.0,1.5,274,64.23,1.34,39.25,6.06,0.88,-1.18,0.75,REJECT,"PF tie vs PROD; payoff 0.75 vs 1.12; DD +87% rel (6.06% vs 3.24%); n=274 vs PROD 184 — verify P0-002 dates; 458 deals confirms partials fire"
+P4A,ORBVWAP_P4A-002_Partial70_Run15x_PROD_EURUSD-M1_full,70,1.0,1.5,274,64.23,1.34,189.55,21.24,4.29,-5.77,0.74,REJECT,"PF tie vs PROD; payoff 0.74 vs 1.12; DD 21.24% (lot-scaled on 200 dep); n/deals/WR identical to P4A-001 — 70% partial no payoff gain"
+P4A,ORBVWAP_P4A-003_Partial50_TrailAtr05_PROD_EURUSD-M1_full,50,1.0,0,274,68.98,1.38,40.93,6.06,0.79,-1.28,0.62,MARGINAL,"PF 1.38 beats PROD 1.34; payoff 0.62 vs 1.12; DD +87% rel; n=274 · 458 deals · trail converts some losses to wins but avg loss still high — no stack"
+P4A,ORBVWAP_P4A-004_Partial50_TimeStop120_PROD_EURUSD-M1_full,50,1.0,0,274,57.66,1.19,23.67,7.05,0.94,-1.07,0.88,REJECT,"PF 1.19 vs PROD 1.34; payoff 0.88 vs 1.12; DD 7.05%; avg hold ~73 min — runner bleeds to time stop; Phase 4A CLOSED no stack"

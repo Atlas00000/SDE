@@ -1,0 +1,5 @@
+task_id,preset,inp_tp_range_mult,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2-003,BASELINE,1.0,1659,62.75,0.91,-72.01,49.81,0.72,-1.33,baseline,P0-002 reference
+P2-003,ORBVWAP_P2-003_TP125x_EURUSD-M1_full,1.25,1646,57.35,0.89,-101.59,58.51,0.90,-1.35,REJECT,WR -5pts; net -41% worse; DD +9%; worst PF of sweep
+P2-003,ORBVWAP_P2-003_TP15x_EURUSD-M1_full,1.5,1621,53.86,0.92,-82.69,50.58,1.08,-1.37,REJECT,WR -9pts; net worse; DD flat; better than 2.0x not than baseline
+P2-003,ORBVWAP_P2-003_TP20x_EURUSD-M1_full,2.0,1566,46.74,0.89,-129.71,69.88,1.42,-1.40,REJECT,WR collapsed; DD +40%; net -80% worse vs baseline

@@ -1,0 +1,8 @@
+task_id,preset,inp_min_rr,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2-004,STACK_LEADER_SkipWedFri,0,967,60.08,0.97,-11.87,15.60,0.59,-0.93,stack_ref,P2B-005 STACK_LEADER — compare all P2-004 runs vs this
+P2-004,ORBVWAP_P2-004_MinRR10_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,1.0,19,63.16,2.55,5.26,0.81,0.72,-0.49,MARGINAL,First net-positive run; PF gate passed; only 19 trades (~98% filtered) — insufficient sample vs 200/yr gate
+P2-004,ORBVWAP_P2-004_MinRR12_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,1.2,0,,,,,,,REJECT,Zero trades — stricter than 1.0; not viable
+P2-004,ORBVWAP_P2-004_MinRR15_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,1.5,,,,,,,,SKIP,Not run — expected 0 trades given 1.2 result
+P2-004,ORBVWAP_P2-004_MinRR07_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,0.7,476,53.78,1.05,7.49,8.31,0.64,-0.72,REJECT,Profitable but 0.9 better on net/PF/DD
+P2-004,ORBVWAP_P2-004_MinRR08_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,0.8,352,51.70,1.12,13.52,4.65,0.67,-0.64,REJECT,Beat stack but 0.9 better on net/PF/DD
+P2-004,ORBVWAP_P2-004_MinRR09_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,0.9,186,53.76,1.32,17.75,3.24,0.72,-0.64,STACK_LEADER,Soft sweep winner; best net/PF/DD trade-off; n=186 viable; promote InpMinRR=0.9

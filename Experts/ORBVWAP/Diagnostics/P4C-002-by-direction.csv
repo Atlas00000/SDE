@@ -1,0 +1,6 @@
+task_id,direction,trades,win_rate_pct,profit_factor,gross_profit,gross_loss,avg_win,avg_loss,payoff_ratio,share_pct,notes
+P4C,ALL,172,54.07,1.40,65.91,-46.97,0.71,-0.59,1.20,100,PROD v3 full P0-002 window 2026-06-11
+P4C,LONG,55,52.73,n/a,n/a,n/a,n/a,n/a,n/a,32.0,29W/26L implied; PF not split in MT5 report
+P4C,SHORT,117,54.70,n/a,n/a,n/a,n/a,n/a,n/a,68.0,64W/53L implied; PF not split in MT5 report
+P4C,prod_ref_v2,LONG,58,55.17,n/a,n/a,n/a,n/a,n/a,31.5,superseded by v3 row above
+P4C,prod_ref_v2,SHORT,126,53.97,n/a,n/a,n/a,n/a,n/a,68.5,superseded by v3 row above

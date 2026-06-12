@@ -1,0 +1,12 @@
+task_id,preset,filter_param,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2C,PROD_EURUSD-M1_v1,none,186,53.76,1.32,17.75,3.24,0.72,-0.64,prod_ref,Superseded by v2
+P2C,PROD_EURUSD-M1_v2,SpreadRange20,184,54.35,1.34,18.54,3.24,0.72,-0.64,prod_v2,Promoted — P2C-005 SpreadRange20 on v1 stack
+P2C,ORBVWAP_P2C-001_D1EMA50_PROD_EURUSD-M1_full,D1_EMA50,81,54.32,1.15,3.87,2.82,0.69,-0.71,REJECT,"Rerun w/ preset loaded: −56% trades, net +3.87 vs PROD +17.75, PF 1.15 vs 1.32; first run was NO-OP (InpD1EmaPeriod=0)"
+P2C,ORBVWAP_P2C-002_H4Swing3_PROD_EURUSD-M1_full,H4_pivot3,95,54.74,1.30,8.35,2.86,0.70,-0.66,REJECT,−49% trades vs PROD; net +8.35 vs +17.75 PF 1.30 vs 1.32 — cuts edge
+P2C,ORBVWAP_P2C-003_ADX20_PROD_EURUSD-M1_full,ADX20,61,50.82,1.00,0.07,2.34,0.60,-0.61,REJECT,−67% trades; net ~0 vs PROD +17.75 PF 1.00 vs 1.32 — kills edge
+P2C,ORBVWAP_P2C-003_ADX25_PROD_EURUSD-M1_full,ADX25,107,57.01,1.37,11.12,2.64,0.67,-0.65,MARGINAL,PF beats PROD (1.37 vs 1.32) n=107 OK; net +11.12 vs +17.75 (−37%) — await ADX30 sweep
+P2C,ORBVWAP_P2C-003_ADX30_PROD_EURUSD-M1_full,ADX30,137,54.74,1.41,15.72,3.06,0.72,-0.62,MARGINAL,Best P2C-003: PF 1.41 beats PROD; net +15.72 vs +17.75 (−11%) n=137 — do not stack on net gate
+P2C,ORBVWAP_P2C-004_AtrExp15_PROD_EURUSD-M1_full,ATRexp1.5,179,52.51,1.33,16.94,3.52,0.73,-0.60,MARGINAL,Light filter (−7 trades); PF 1.33 vs 1.32 net +16.94 vs +17.75 (−5%) — do not stack
+P2C,ORBVWAP_P2C-005_SpreadRange20_PROD_EURUSD-M1_full,spread20pct,184,54.35,1.34,18.54,3.24,0.72,-0.64,STACK_CANDIDATE,Beats PROD net (+18.54 vs +17.75) and PF (1.34 vs 1.32) −2 trades only — first P2C pass
+P2C,ORBVWAP_P2C-006_VolCap3x_PROD_EURUSD-M1_full,vol3x,184,53.26,1.31,16.78,3.25,0.73,-0.64,REJECT,−2 trades vs PROD; net +16.78 vs +17.75 PF 1.31 vs 1.32 — worse than PROD and SpreadRange20
+P2C,ORBVWAP_P2C-007_VwapDist1_PROD_EURUSD-M1_full,vwap1atr,59,50.85,1.12,2.14,2.63,0.66,-0.61,REJECT,−68% trades; net +2.14 vs PROD +17.75 PF 1.12 — over-filters

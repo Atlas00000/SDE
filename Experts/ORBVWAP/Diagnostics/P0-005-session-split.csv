@@ -1,0 +1,4 @@
+preset,session,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,sharpe,largest_win,largest_loss,avg_hold_min,notes
+ORBVWAP_BASELINE_P1_EURUSD-M1_full,Both,1659,62.75,0.91,-72.01,49.81,0.72,-1.33,-2.32,6.24,-11.82,117,P0-002 reference
+ORBVWAP_P0-005_LondonOnly_EURUSD-M1_full,London,872,61.58,0.90,-34.94,28.96,0.57,-1.01,-3.69,3.54,-8.29,51,2026-06-11
+ORBVWAP_P0-005_NyOnly_EURUSD-M1_full,NY,817,63.04,0.91,-44.92,30.95,0.88,-1.64,-1.84,6.24,-11.82,182,2026-06-11

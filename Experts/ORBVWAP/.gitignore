@@ -1,0 +1,13 @@
+# Compiled
+*.ex5
+
+# Build / compile logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# OS / IDE
+.DS_Store
+Thumbs.db

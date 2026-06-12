@@ -1,0 +1,3 @@
+task_id,preset,inp_skip_weekdays,inp_no_entry_after_hour,inp_max_hold_minutes,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2B-005,STACK_LEADER_NYcut1600,0,16,120,1625,59.57,0.95,-31.23,26.07,0.60,-0.93,stack_ref,P2B-004 STACK_LEADER — compare P2B-005 vs this
+P2B-005,ORBVWAP_P2B-005_SkipWedFri_NYcut1600_TimeStop120_EURUSD-M1_full,40,16,120,967,60.08,0.97,-11.87,15.60,0.59,-0.93,STACK_LEADER,Net +62% vs NYcut1600; PF 0.97 best yet; DD -40% rel; 967 trades OK; still -11.87 net

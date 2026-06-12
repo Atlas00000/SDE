@@ -1,0 +1,6 @@
+ticket,open_time_gmt,open_hour_gmt,weekday,session_tag,direction,profit,hold_minutes,range_width_pips,notes
+; P0-004: paste rows from Strategy Tester → Report → Orders (or export HTML and transcribe)
+; session_tag: LONDON | NY | UNKNOWN
+; open_hour_gmt: hour 0-23 from open time converted with InpGmtOffsetHours
+; Example row:
+; 12345,2025.03.15 09:05:00,9,Friday,LONDON,BUY,-1.33,87,8.2,false_breakout

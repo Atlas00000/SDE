@@ -1,0 +1,5 @@
+task_id,preset,ny_delay_min,ldn_delay_min,fresh_bars_max,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,payoff_ratio,verdict,notes
+P4B,PROD_v3_EURUSD-M1,30,0,0,172,54.07,1.40,18.94,2.51,0.71,-0.59,1.20,prod_ref,Compare P4B variants vs PROD v3
+P4B,ORBVWAP_P4B-001_NYstart1330_PROD_EURUSD-M1_full,30,0,0,172,54.07,1.40,18.94,2.51,0.71,-0.59,1.20,PROMOTED_PROD_v3,Promoted 2026-06-11
+P4B,ORBVWAP_P4B-002_LDNstart0900_PROD_EURUSD-M1_full,30,120,0,129,54.26,1.50,17.33,2.67,0.74,-0.58,1.28,REJECT,"PF 1.50 beats v3 1.40 but net 17.33 vs 18.94; n=129 < 150 gate; DD 2.67% — do not stack on v3"
+P4B,ORBVWAP_P4B-003_FreshBreak5_PROD_EURUSD-M1_full,30,0,5,5,80.00,3.80,1.96,0.39,0.67,-0.70,0.96,REJECT,"n=5 over full period — filter too strict; PF inflated on tiny sample; do not stack"

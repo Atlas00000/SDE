@@ -1,0 +1,25 @@
+dimension,bucket,entries_high,pl_bias,notes
+hour_gmt,00-08,low,neutral,Asian session gated out
+hour_gmt,09,high,positive,London post-open — core edge window
+hour_gmt,10,high,mixed,London continuation
+hour_gmt,11-12,medium,mixed,London tail
+hour_gmt,13-14,medium,mixed,Pre-NY / overlap
+hour_gmt,15,high,negative,US open — largest loss bar vs profit
+hour_gmt,16,high,negative,NY open tail — loss-heavy
+hour_gmt,17-21,medium,negative,Late US chop
+hour_gmt,22+,low,neutral,Outside primary windows
+weekday,Monday,balanced,balanced,
+weekday,Tuesday,balanced,balanced,
+weekday,Wednesday,elevated,negative,Mid-week reversal risk
+weekday,Thursday,elevated,balanced,Slight volume uptick
+weekday,Friday,balanced,negative,Week-end positioning
+month,Jan-Feb,medium,mixed,
+month,Mar,high,negative,Elevated losses
+month,Apr,high,negative,Elevated losses
+month,May,medium,positive,Strong month in baseline
+month,Jun,medium,mixed,P0-003: small sample profitable
+month,Jul-Sep,medium,negative,Summer regime weakness
+month,Aug,elevated,negative,Worst summer month
+month,Oct,medium,mixed,
+month,Nov,low,negative,Activity + P/L drop
+month,Dec,low,mixed,Year-end thin liquidity

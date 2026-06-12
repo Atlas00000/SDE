@@ -1,0 +1,4 @@
+task_id,preset,inp_be_trigger,inp_max_hold_minutes,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2-006,STACK_BASE_TimeStop120,0,120,1706,59.26,0.94,-41.79,30.55,0.60,-0.93,stack_ref,P2-005 STACK_CANDIDATE — compare all P2-006 runs vs this
+P2-006,ORBVWAP_P2-006_BE05_TimeStop120_EURUSD-M1_full,0.5,120,1706,58.97,0.91,-44.13,26.33,0.42,-0.67,REJECT,Net -5% vs stack; PF 0.91 vs 0.94; DD -14% rel better; avg win crushed by BE scratches; avg loss improved
+P2-006,ORBVWAP_P2-006_BE075_TimeStop120_EURUSD-M1_full,0.75,120,1706,58.97,0.92,-48.04,29.73,0.52,-0.82,REJECT,Net -15% vs stack; PF 0.92 vs 0.94; worse than BE05 on net; later trigger preserves avg win but not enough

@@ -1,0 +1,10 @@
+reason_code,count,pct_of_total,notes
+OUTSIDE_SESSION,6271,62.48,Session gate — expected majority on M1
+ALREADY_TRADED,3220,32.08,First-breakout cap — fires every bar after session trade
+NO_BREAKOUT,293,2.92,Inside range — normal during session
+VOL_INSUFFICIENT,197,1.96,Volume filter blocking marginal breaks
+RANGE_FORMING,56,0.56,Pre-lock window (first 5 min)
+RANGE_TOO_NARROW,0,0.00,Not observed in June sample
+WRONG_SIDE_OF_VWAP,0,0.00,Not observed in June sample
+SPREAD_TOO_HIGH,0,0.00,Not observed in June sample
+TOTAL,10037,100.00,P0-003 June 2026 isolated run (10051 M1 bars)

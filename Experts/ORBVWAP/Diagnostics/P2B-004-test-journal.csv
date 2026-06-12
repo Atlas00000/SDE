@@ -1,0 +1,4 @@
+task_id,preset,inp_no_entry_after_hour,inp_max_hold_minutes,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,verdict,notes
+P2B-004,STACK_BASE_TimeStop120,0,120,1706,59.26,0.94,-41.79,30.55,0.60,-0.93,stack_ref,P2-005 best config — compare all P2B-004 runs vs this
+P2B-004,ORBVWAP_P2B-004_NYcut1600_TimeStop120_EURUSD-M1_full,16,120,1625,59.57,0.95,-31.23,26.07,0.60,-0.93,STACK_CANDIDATE,Net +25% vs TimeStop120; PF 0.95; DD -15% rel; -81 trades; best config so far; still net negative
+P2B-004,ORBVWAP_P2B-004_NYcut1700_TimeStop120_EURUSD-M1_full,17,120,1706,59.09,0.94,-41.79,30.55,0.60,-0.93,NO_OP,Identical to TimeStop120 stack; NY session ends 17:00 GMT so cutoff has no effect

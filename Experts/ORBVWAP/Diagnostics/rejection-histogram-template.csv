@@ -1,0 +1,15 @@
+reason_code,count,pct_of_total,notes
+OUTSIDE_SESSION,0,0.0,
+RANGE_FORMING,0,0.0,
+RANGE_TOO_NARROW,0,0.0,
+VOL_INSUFFICIENT,0,0.0,
+WRONG_SIDE_OF_VWAP,0,0.0,
+NO_BREAKOUT,0,0.0,
+ALREADY_TRADED,0,0.0,
+SPREAD_TOO_HIGH,0,0.0,
+MAX_TRADES,0,0.0,
+COOLDOWN,0,0.0,
+PERMISSION_DENIED,0,0.0,
+EQUITY_FLOOR,0,0.0,
+; P0-003: tally from MQL5/Files/ORBVWAP_journal.csv (column 2 = reason_code)
+; Delete journal file before each P0-003 run for clean count

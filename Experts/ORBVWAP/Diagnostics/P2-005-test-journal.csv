@@ -1,0 +1,5 @@
+task_id,preset,inp_max_hold_minutes,trades,win_rate_pct,profit_factor,net_profit,max_equity_dd_pct,avg_win,avg_loss,avg_hold_time,verdict,notes
+P2-005,BASELINE,0,1659,62.75,0.91,-72.01,49.81,0.72,-1.33,1h55m,baseline,P0-002 reference; max hold 91h+
+P2-005,ORBVWAP_P2-005_TimeStop60_EURUSD-M1_full,60,1706,56.57,0.86,-83.85,45.30,0.54,-0.81,32m,REJECT,WR -6pts; net -16% worse; DD -4.5pts only; avg loss improved; max loss -6.28 vs -11.82; cuts winners before TP
+P2-005,ORBVWAP_P2-005_TimeStop120_EURUSD-M1_full,120,1706,59.26,0.94,-41.79,30.55,0.60,-0.93,46m,STACK_CANDIDATE,Sweep winner; net +42% vs baseline; DD -39% rel; PF 0.94 misses gate; use as base for P2-006/P2-001
+P2-005,ORBVWAP_P2-005_TimeStop180_EURUSD-M1_full,180,1706,60.38,0.93,-51.29,37.67,0.63,-1.03,55m,REJECT,Better than baseline net/DD but worse than 120 on net PF DD avg loss; longer hold re-opens tail
