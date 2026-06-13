@@ -79,6 +79,23 @@ input int    InpConsecLossMax       = 0;     // P2D-002: 0=off, consecutive clos
 input int    InpConsecLossPauseMin  = 120;   // P2D-002: pause duration (minutes)
 input double InpEqTrailPct          = 0.0;   // P2D-004: 0=off, halt if equity drops pct from day peak
 
+input group "=== AI export (AI-0) ==="
+input bool   InpEnableDecisionExport = false;  // AI-0: write ORBVWAP_decisions.csv + outcomes
+
+input group "=== AI Layer 1 (AI-1) ==="
+input ENUM_ORBVWAP_AI_GATE_MODE InpAiGateMode = ORBVWAP_AI_OFF; // OFF / SHADOW (log) / LIVE (block)
+input double InpAiMinScore       = 0.0;      // Min score to take; 0 = use model tau (protection mode)
+
+input group "=== AI Layer 2 (AI-2) ==="
+input ENUM_ORBVWAP_AI_SIZE_MODE InpAiSizeMode = ORBVWAP_AI_SIZE_OFF; // OFF / SHADOW (log) / LIVE (scale lot)
+
+input group "=== AI Layer 3 (AI-3) ==="
+input ENUM_ORBVWAP_AI_REGIME_MODE InpAiRegimeMode = ORBVWAP_AI_REGIME_OFF; // OFF / SHADOW / LIVE (skip session)
+
+input group "=== AI Layer 4 (AI-4) ==="
+input ENUM_ORBVWAP_AI_EXIT_MODE InpAiExitMode = ORBVWAP_AI_EXIT_OFF; // OFF / SHADOW / LIVE (stall scratch)
+input bool   InpEnablePathExport  = false;   // AI-4: write ORBVWAP_paths.csv on close
+
 input group "=== Debug ==="
 input bool   InpEnableFileJournal   = false;
 input bool   InpLogSessionState     = false;

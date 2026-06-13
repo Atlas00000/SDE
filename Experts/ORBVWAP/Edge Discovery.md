@@ -2,7 +2,7 @@
 
 Reference: [compo report.md](./compo%20report.md) · [concept.md](./concept.md)
 
-**Status:** **PRODUCTION v3 promoted** (defaults = PROD stack). EA **v1.17** · **P4B-001 → PROD v3** · **Phase 4C CLOSED (NO-STACK)**.
+**Status:** **PRODUCTION v3 promoted** (defaults = PROD stack). EA **v1.22** · **AI offline training CLOSED** · MT5 validation partial · LIVE pending.
 
 **Production preset:** `Presets/ORBVWAP_PROD_EURUSD-M1.set` (alias: `_v3.set`) · superseded: `_v2.set` · See [System Profile.md](./System%20Profile.md)
 
@@ -16,7 +16,7 @@ Reference: [compo report.md](./compo%20report.md) · [concept.md](./concept.md)
 
 **Stack:** Skip Wed+Fri · NY cut 16:00 · **NY delay 30 min (13:30+)** · Time stop 120 · MinRR 0.9 · SpreadRange 20% · P2D off · partial off.
 
-**Next (recommended order):** **Phase 3** (P3-004 forward demo when ready · P3-001–003 OOS / optimise / multi-symbol). See [System Profile.md](./System%20Profile.md).
+**Next (recommended order):** Promote **AI-1 + AI-3 LIVE** (stack candidate) → **AI-2** MT5 shadow → **AI-4** path export + LIVE (last). See [ailayers.md](./ailayers.md).
 
 ---
 
@@ -395,6 +395,22 @@ Phases **0–2D** are **closed** — do not re-run unless regression testing. Ne
 
 ---
 
+### Phase 5 — AI intelligence layers *(offline CLOSED · MT5 partial)*
+
+Full roadmap: [ailayers.md](./ailayers.md) · journal: `Diagnostics/AI-test-journal.csv` · **offline closed 2026-06-11**
+
+| ID | Offline train | EA wired | MT5 validated | LIVE promote | Open tasks |
+|----|---------------|----------|---------------|--------------|------------|
+| **AI-0** | ✅ PASS | N/A | ✅ export | N/A | Re-export v2 when new data |
+| **AI-1** | ✅ PASS · τ=0.30 · PF 1.49 | ✅ v1.19 | ✅ 342t PF 1.33 | ⬜ | Walk-forward 3 folds · PROD preset |
+| **AI-2** | ✅ PASS · PF 1.47 | ✅ v1.20 | ⬜ | ⬜ | `AI12` shadow backtest |
+| **AI-3** | ✅ PASS · skip 8% · PF 1.43 | ✅ v1.21 | ✅ 315t PF 1.53 | ⬜ | PROD preset with AI-1 |
+| **AI-4** | ✅ PASS *(proxy paths)* | ✅ v1.22 | ✅ log only | ⬜ last | Real paths v2 · LIVE stall exit |
+
+**Deploy candidate:** AI-1 + AI-3 LIVE — MT5 **n=315 · PF=1.53 · DD=5.89%** (`AI-1234-005`).
+
+---
+
 ### Phase 3 — Optimisation & forward validation *(after Phase 4 or on demand)*
 
 *Unchanged scope from original plan. Run **P3-004 forward demo** when you choose — deferred is OK if Phase 4A–4C are active.*
@@ -474,7 +490,8 @@ After each Phase 4 task: compare to **PROD reference**, not P0 baseline. **Keep 
 | Session filters | ✅ **PROD v3** | NY delay 30 min on stack |
 | Regime filters (P2C) | ✅ CLOSED | SpreadRange20 on PROD |
 | Circuit breakers (P2D) | ✅ CLOSED (NO-OP) | Off; revisit at live scale |
-| Direction analysis | — | **Phase 4C** diagnostics |
+| Direction analysis | ✅ **Phase 4C** NO-STACK | No long-bias filters |
+| AI layers | **AI-0/1/2/3/4 PASS** (offline) | MT5 `AI1234` shadow → LIVE |
 | Forward validation | Deferred | **Phase 3** P3-004 when ready |
 | Testing discipline | — | One Task ID → one preset → one journal row |
 

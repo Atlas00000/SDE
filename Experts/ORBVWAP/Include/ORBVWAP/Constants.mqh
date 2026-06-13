@@ -8,6 +8,9 @@
 #define ORBVWAP_DEFAULT_MAGIC        20260611
 #define ORBVWAP_TRADE_COMMENT        "ORBVWAP"
 #define ORBVWAP_JOURNAL_FILE         "ORBVWAP_journal.csv"
+#define ORBVWAP_DECISIONS_FILE       "ORBVWAP_decisions.csv"
+#define ORBVWAP_OUTCOMES_FILE        "ORBVWAP_outcomes.csv"
+#define ORBVWAP_PATHS_FILE           "ORBVWAP_paths.csv"
 
 #define ORBVWAP_REJECT_OUTSIDE_SESSION   "OUTSIDE_SESSION"
 #define ORBVWAP_REJECT_ENTRY_CUTOFF      "ENTRY_CUTOFF"

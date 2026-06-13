@@ -1,0 +1,9 @@
+{
+  "model_id": "ai4_v1",
+  "type": "stall_scratch",
+  "mode": "protection_exit",
+  "stall_minutes": 45,
+  "stall_mfe_frac": 0.25,
+  "tail_cap_mult": 0.65,
+  "holdout_cut": "2023-11-20 14:44:00"
+}

@@ -50,6 +50,16 @@ class CRiskEngine
       return(lots);
      }
 
+public:
+   static double ScaleLots(const string symbol, const double lots, const double multiplier)
+     {
+      if(multiplier <= 0.0)
+         return(NormalizeVolume(symbol, lots));
+      return(NormalizeVolume(symbol, lots * multiplier));
+     }
+
+private:
+
    static double CalculateLots(const string               symbol,
                                  const ENUM_ORBVWAP_SIGNAL  signal,
                                  const double               entry_price,

@@ -1,0 +1,18 @@
+task_id,preset,dataset,holdout_cut,n_full,pf_full,n_holdout,pf_holdout,verdict,notes
+AI-0-003,ORBVWAP_AI0_Export_PROD_EURUSD-M1_full,ORBVWAP_ai_dataset_v1.parquet,2024-01-16 14:00:00,358,1.29,100,1.43,PASS,AI-0 baseline replay
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.74,19,0.45,REJECT,tau=0.61 prod_ho_pf=1.39
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.62,60,1.41,REJECT,tau=0.50 prod_ho_pf=1.39
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.36,88,1.34,REJECT,tau=0.39 prod_ho_pf=1.39
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.4,81,1.48,REJECT,tau=0.41 prod_ho_pf=1.39
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.33,88,1.34,REVIEW,tau=0.38 prod_ho_pf=1.39
+AI-1-003,AI1_Scorer_train,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,358,1.33,98,1.49,PASS,tau=0.30 prod_ho_pf=1.39
+AI-2-002,AI2_Sizing_replay,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,98,1.47,98,1.47,PASS,ai1+ai2 payoff=1.20 net=12.79
+AI-3-003,AI3_Regime_replay,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,64,1.55,64,1.55,REJECT,maxCL 5->4 win_cut=0.34
+AI-3-003,AI3_Regime_replay,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,97,1.43,97,1.43,PASS,maxCL 5->4 win_cut=0.11
+AI-4-003,AI4_Exit_replay,ORBVWAP_ai_paths_v1.parquet,2023-11-20 14:44:00,88,1.58,88,1.58,REJECT,payoff 1.21->1.26 tail 2.39->2.49
+AI-4-003,AI4_Exit_replay,ORBVWAP_ai_paths_v1.parquet,2023-11-20 14:44:00,88,1.55,88,1.55,REJECT,payoff 1.21->1.23 tail 2.39->2.44
+AI-4-003,AI4_Exit_replay,ORBVWAP_ai_paths_v1.parquet,2023-11-20 14:44:00,88,1.55,88,1.55,PASS,payoff 1.21->1.23 tail 2.39->2.44
+AI-4-003,AI4_Exit_replay,ORBVWAP_ai_paths_v1.parquet,2023-11-20 14:44:00,88,2.51,88,2.51,PASS,payoff 1.21->2.00 tail 2.39->1.08
+AI-123-005,ORBVWAP_AI123_SHADOW_PROD_EURUSD-M1,MT5_6y_EURUSD-M1,full,342,1.33,342,1.33,PASS,AI1 LIVE AI2/3 SHADOW; WR 54.97% DD 8.34% net 34.28 vs PROD n=358 PF=1.29 DD=8.56%
+AI-1234-005,ORBVWAP_AI1234_SHADOW_PROD_EURUSD-M1,MT5_6y_EURUSD-M1,full,315,1.53,315,1.53,PASS,AI1+AI3 LIVE AI2+AI4 SHADOW; WR 58.10% DD 5.89% net 46.33 vs AI123 n=342 PF=1.33; tail loss -5.19 unchanged
+AI-3-003,AI3_Regime_replay,ORBVWAP_ai_dataset_v1.parquet,2023-11-20 14:44:00,97,1.43,97,1.43,PASS,maxCL 5->4 win_cut=0.11

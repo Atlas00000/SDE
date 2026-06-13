@@ -1,0 +1,75 @@
+; ORBVWAP AI-1 SHADOW — PROD v3 + L1 scorer logging (no blocking)
+; Task: AI-1-005 | Model: ai1_v1 | tau=0.50
+; Run backtest vs PROD; compare Experts log for AI1 shadow lines
+
+; === General ===
+InpMagicNumber=20260611||20260611||1||202606110||N
+InpEnableTrading=true||false||0||true||N
+; === Session (GMT) ===
+InpGmtOffsetHours=2||2||1||20||N
+InpLondonStartHour=7||7||1||70||N
+InpLondonEndHour=12||12||1||120||N
+InpNyStartHour=13||13||1||130||N
+InpNyEndHour=17||17||1||170||N
+InpActiveSession=2||0||0||2||N
+InpNoEntryAfterHour=16||16||1||23||N
+InpSkipWeekdays=40||40||1||127||N
+InpNyEntryDelayMin=30||30||1||120||N
+InpLondonEntryDelayMin=0||0||1||120||N
+; === Opening Range ===
+InpRangeMinutes=5||5||1||50||N
+InpMaxBarsAfterLock=0||0||1||20||N
+InpMinRangeAtrFactor=0.8||0.8||0.080000||8.000000||N
+InpTpRangeMult=1.0||1.0||0.100000||3.000000||N
+InpSlMode=0||0||0||1||N
+; === Execution ===
+InpTestExecution=false||false||0||true||N
+InpSlippagePoints=10||10||1||100||N
+InpMaxSpreadPoints=30||30||1||300||N
+; === Risk ===
+InpSizingMode=0||0||0||1||N
+InpFixedLot=0.01||0.01||0.001000||1.000000||N
+InpRiskPercent=1.0||1.0||0.100000||10.000000||N
+InpSltpMode=0||0||0||2||N
+InpStopLossPoints=50||50||1||500||N
+InpTakeProfitPoints=50||50||1||500||N
+InpSlAtrMult=1.5||1.5||0.150000||15.000000||N
+InpTpAtrMult=1.0||1.0||0.100000||10.000000||N
+InpMaxOpenTrades=1||1||1||10||N
+InpCooldownSeconds=60||60||1||600||N
+InpTradePermission=0||0||0||2||N
+InpMinEquityRatio=0.8||0.8||0.080000||1.000000||N
+InpMaxHoldMinutes=120||120||1||1200||N
+InpBeTrigger=0.0||0.0||0.000000||3.000000||N
+InpMinRR=0.9||0.9||0.090000||3.000000||N
+InpPartialClosePct=0.0||0.0||0.000000||1.000000||N
+InpPartialAtRangeMult=1.0||1.0||0.100000||3.000000||N
+InpRunnerTpRangeMult=0.0||0.0||0.000000||3.000000||N
+InpTrailAtr=0.0||0.0||0.000000||3.000000||N
+; === Indicators ===
+InpAtrPeriod=14||14||1||140||N
+InpVolumeMaPeriod=20||20||1||200||N
+InpVolumeMultiplier=1.5||1.5||0.150000||15.000000||N
+InpAtrSlowPeriod=50||50||1||500||N
+InpAdxPeriod=14||14||1||140||N
+; === Entry filters (P2C) ===
+InpD1EmaPeriod=0||0||1||200||N
+InpH4SwingPivotBars=0||0||1||20||N
+InpAdxMax=0.0||0.0||0.000000||100.000000||N
+InpAtrExpMax=0.0||0.0||0.000000||10.000000||N
+InpMaxSpreadPctRange=20.0||20.0||2.000000||100.000000||N
+InpVolMaxMult=0.0||0.0||0.000000||10.000000||N
+InpMaxVwapDistAtr=0.0||0.0||0.000000||10.000000||N
+; === Circuit breakers (P2D) ===
+InpDailyLossPct=0.0||0.0||0.000000||20.000000||N
+InpConsecLossMax=0||0||1||20||N
+InpConsecLossPauseMin=120||120||1||1200||N
+InpEqTrailPct=0.0||0.0||0.000000||20.000000||N
+; === AI export (AI-0) ===
+InpEnableDecisionExport=false||false||0||true||N
+; === AI Layer 1 (AI-1) ===
+InpAiGateMode=1||0||0||2||N
+InpAiMinScore=0.5||0.5||0.050000||1.000000||N
+; === Debug ===
+InpEnableFileJournal=false||false||0||true||N
+InpLogSessionState=false||false||0||true||N

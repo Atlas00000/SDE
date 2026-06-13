@@ -10,10 +10,14 @@
 #include "Types.mqh"
 #include "RiskEngine.mqh"
 #include "Logger.mqh"
+#include "PathTracker.mqh"
+#include "AiExit.mqh"
 
 class CExecutionEngine
   {
    CTrade  m_trade;
+   long    m_magic;
+   ulong   m_last_position_id;
    ulong   m_partial_done[];
 
    bool IsPartialDone(const ulong ticket) const
@@ -176,10 +180,17 @@ class CExecutionEngine
 public:
    void Configure(const string symbol, const long magic)
      {
+      m_magic = magic;
       m_trade.SetExpertMagicNumber((ulong)magic);
       m_trade.SetDeviationInPoints(InpSlippagePoints);
       m_trade.SetTypeFilling(SelectFilling(symbol));
       m_trade.SetAsyncMode(false);
+      m_last_position_id = 0;
+     }
+
+   ulong LastPositionId() const
+     {
+      return(m_last_position_id);
      }
 
    bool OpenMarket(const string symbol, STradeSetup &setup)
@@ -227,7 +238,32 @@ public:
 
       if(ok)
         {
-         COrbVwapLogger::Info("Order placed ticket=" + (string)m_trade.ResultOrder());
+         m_last_position_id = 0;
+         const ulong deal_ticket = m_trade.ResultDeal();
+         if(deal_ticket > 0 && HistoryDealSelect(deal_ticket))
+            m_last_position_id = (ulong)HistoryDealGetInteger(deal_ticket, DEAL_POSITION_ID);
+         COrbVwapLogger::Info("Order placed position=" + (string)m_last_position_id);
+         if(m_last_position_id > 0)
+           {
+            ulong pos_ticket = 0;
+            for(int p = PositionsTotal() - 1; p >= 0; p--)
+              {
+               const ulong t = PositionGetTicket(p);
+               if(t == 0)
+                  continue;
+               if(PositionGetString(POSITION_SYMBOL) != symbol)
+                  continue;
+               if((long)PositionGetInteger(POSITION_MAGIC) != m_magic)
+                  continue;
+               if((ulong)PositionGetInteger(POSITION_IDENTIFIER) == m_last_position_id)
+                 {
+                  pos_ticket = t;
+                  break;
+                 }
+              }
+            if(pos_ticket > 0)
+               CPathTracker::Register(pos_ticket, m_last_position_id, setup.range_width);
+           }
          return(true);
         }
 
@@ -518,8 +554,56 @@ public:
         }
      }
 
+   void ManageAiStallScratch(const string symbol, const long magic)
+     {
+      if(InpAiExitMode == ORBVWAP_AI_EXIT_OFF)
+         return;
+
+      for(int i = PositionsTotal() - 1; i >= 0; i--)
+        {
+         const ulong ticket = PositionGetTicket(i);
+         if(ticket == 0)
+            continue;
+         if(PositionGetString(POSITION_SYMBOL) != symbol)
+            continue;
+         if((long)PositionGetInteger(POSITION_MAGIC) != magic)
+            continue;
+
+         const int hold_min = CPathTracker::HoldMinutes(ticket);
+         const double mfe_frac = CPathTracker::MfeFrac(ticket);
+         const bool scratch = CAiExit::ShouldStallScratch(hold_min, mfe_frac);
+
+         if(InpAiExitMode == ORBVWAP_AI_EXIT_SHADOW)
+           {
+            if(scratch)
+               COrbVwapLogger::Info(StringFormat("AI4 shadow STALL ticket=%I64u hold=%d mfe_frac=%.2f",
+                                                   ticket, hold_min, mfe_frac));
+            continue;
+           }
+
+         if(!scratch)
+            continue;
+
+         ResetLastError();
+         if(m_trade.PositionClose(ticket))
+           {
+            COrbVwapLogger::Info(StringFormat("AI4 stall scratch ticket=%I64u hold=%d mfe_frac=%.2f",
+                                               ticket, hold_min, mfe_frac));
+           }
+         else
+           {
+            COrbVwapLogger::Error(StringFormat("AI4 stall failed ticket=%I64u retcode=%d %s",
+                                               ticket,
+                                               (int)m_trade.ResultRetcode(),
+                                               m_trade.ResultRetcodeDescription()));
+           }
+        }
+     }
+
    void ManageOpenPositions(const string symbol, const long magic, const double atr)
      {
+      CPathTracker::Update(symbol, magic);
+      ManageAiStallScratch(symbol, magic);
       ManagePartialTakeProfit(symbol, magic);
       ManageRunnerTrail(symbol, magic, atr);
       ManageBreakEven(symbol, magic);
