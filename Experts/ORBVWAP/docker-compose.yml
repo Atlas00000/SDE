@@ -1,0 +1,19 @@
+# INF-2-005: docker compose run --rm replay-all
+services:
+  replay-all:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    working_dir: /orbvwap
+    volumes:
+      - .:/orbvwap
+    command: python Diagnostics/ai/replay_all.py
+
+  simulate-ai2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    working_dir: /orbvwap
+    volumes:
+      - .:/orbvwap
+    command: python Diagnostics/ai/simulate_ai2.py

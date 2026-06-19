@@ -3,7 +3,7 @@
 **Document:** `System Design.md`  
 **EA version:** 1.22 · **Production:** PROD v3 (frozen signal/exit geometry)  
 **AI models:** Offline training **CLOSED** (AI-0…AI-4) · see [ailayers.md](./ailayers.md)  
-**Infra pipeline:** **INF-0…INF-7** ⬜ not started · **blocks chart LIVE** until INF-GATE PASS  
+**Infra pipeline:** **INF-0–2** ✅ · **INF-3…INF-7** ⬜ · **blocks chart LIVE** until INF-GATE PASS  
 **References:** [aidesign.md](./aidesign.md) · [ailayers.md](./ailayers.md) · [System Profile.md](./System%20Profile.md)
 
 ---
@@ -15,7 +15,7 @@ Operational system design for ORBVWAP: EA layout, AI wiring, offline → Tester 
 | Track | Phase prefix | Status | Unlocks |
 |-------|--------------|--------|---------|
 | **Edge + AI models** | AI-0…AI-4 | Offline ✅ · Tester partial | MT5 Tester SHADOW/LIVE presets |
-| **Infra + pipeline** | INF-0…INF-7 | ⬜ planned | **Chart LIVE** · forward demo |
+| **Infra + pipeline** | INF-0…INF-7 | **INF-0–2** ✅ · INF-3…7 ⬜ | **Chart LIVE** · forward demo |
 | **Forward validation** | P3-004 | Deferred | Real-money cadence |
 
 **Critical rule:** **Strategy Tester sign-off** and **live chart / demo sign-off** are **different gates**. Chart LIVE (preset steps 6–8) runs **only after INF-GATE PASS**. Until then, max stage = **MT5 Tester** + journal row.
@@ -221,13 +221,13 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-0-001** | `schemas/decisions.v1.json` column spec | Schema file | ⬜ |
-| **INF-0-002** | `Diagnostics/ai/schema.py` (Pydantic or dataclass) | Validators | ⬜ |
-| **INF-0-003** | `build_dataset.py --validate` | Exit non-zero on schema fail | ⬜ |
-| **INF-0-004** | Unique `decision_id` · no dup executed rows | Validation rule | ⬜ |
-| **INF-0-005** | Schema bump procedure doc in schema file | `v1` → `v2` policy | ⬜ |
+| **INF-0-001** | `schemas/decisions.v1.json` column spec | Schema file | ✅ |
+| **INF-0-002** | `Diagnostics/ai/schema.py` (Pydantic or dataclass) | Validators | ✅ |
+| **INF-0-003** | `build_dataset.py --validate` | Exit non-zero on schema fail | ✅ |
+| **INF-0-004** | Unique `decision_id` · no dup executed rows | Validation rule | ✅ |
+| **INF-0-005** | Schema bump procedure doc in schema file | `v1` → `v2` policy | ✅ |
 
-**Gate:** Full 6y export builds parquet with zero validation errors.
+**Gate:** Full 6y export builds parquet with zero validation errors. ✅ PASS on `ORBVWAP_ai_dataset_v1.parquet` (journal `INF-0-006`).
 
 ---
 
@@ -237,15 +237,15 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-1-001** | `AiShadowExport.mqh` · `InpEnableAiShadowLog` | EA module | ⬜ |
-| **INF-1-002** | `ORBVWAP_ai_shadow.csv` columns (see below) | File spec | ⬜ |
-| **INF-1-003** | Log on every signal evaluation (SHADOW + LIVE) | Pipeline hook | ⬜ |
-| **INF-1-004** | Preset `ORBVWAP_AI1234_SHADOW` + export ON | Tester preset | ⬜ |
-| **INF-1-005** | Audit script `audit_shadow.py` — fail if all neutral | CI/local gate | ⬜ |
+| **INF-1-001** | `AiShadowExport.mqh` · `InpEnableAiShadowLog` | EA module | ✅ |
+| **INF-1-002** | `ORBVWAP_ai_shadow.csv` columns (see below) | File spec | ✅ |
+| **INF-1-003** | Log on every signal evaluation (SHADOW + LIVE) | Pipeline hook | ✅ |
+| **INF-1-004** | Preset `ORBVWAP_AI1234_SHADOW` + export ON | Tester preset | ✅ |
+| **INF-1-005** | Audit script `audit_shadow.py` — fail if all neutral | CI/local gate | ✅ |
 
 **Minimum columns:** `bar_time_gmt`, `sess_key`, `decision_id`, `ai1_score`, `ai1_pass`, `ai2_mult`, `ai3_allow`, `ai4_would_scratch`, `mode_ai1`, `mode_ai2`, `mode_ai3`, `mode_ai4`, `ea_version`, `bundle_id`.
 
-**Gate:** Tester backtest produces ≥2 distinct score buckets · 0% all-neutral rows.
+**Gate:** Tester backtest produces ≥2 distinct score buckets · 0% all-neutral rows. ✅ PASS `INF-1-006` (v1.23 · 55 buckets · 16965 rows).
 
 ---
 
@@ -255,13 +255,13 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-2-001** | `pyproject.toml` + locked deps | Root package | ⬜ |
-| **INF-2-002** | `Dockerfile` · Python 3.11+ slim | `docker/` | ⬜ |
-| **INF-2-003** | `Makefile` targets: `replay-all`, `train-all`, `simulate-ai2` | `Makefile` | ⬜ |
-| **INF-2-004** | `.env.example` — Tester Files path, terminal ID | Config template | ⬜ |
-| **INF-2-005** | Document `docker compose run replay-all` | README | ⬜ |
+| **INF-2-001** | `pyproject.toml` + locked deps | Root package | ✅ |
+| **INF-2-002** | `Dockerfile` · Python 3.11+ slim | `docker/` | ✅ |
+| **INF-2-003** | `Makefile` targets: `replay-all`, `train-all`, `simulate-ai2` | `Makefile` | ✅ |
+| **INF-2-004** | `.env.example` — Tester Files path, terminal ID | Config template | ✅ |
+| **INF-2-005** | Document `docker compose run replay-all` | README | ✅ |
 
-**Gate:** Fresh container runs all AI replay gates · metrics match local journal within ε.
+**Gate:** Fresh container runs all AI replay gates · metrics match local journal within ε. ✅ PASS local `replay_all.py` (`INF-2-006`); Docker: `make docker-replay` or `docker compose run replay-all`.
 
 ---
 
@@ -412,9 +412,9 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 | 2 | `AI1_SHADOW_*` | log | — | — | — | A | optional |
 | 3 | `AI123_SHADOW_*` | **L** | log | log | — | A | ✅ |
 | 4 | `AI1234_SHADOW_*` | **L** | log | **L** | log | A | ✅ |
-| 5 | `AI12_SHADOW_*` | **L** | log | — | — | A | ⬜ |
+| 5 | `AI12_SHADOW_*` | **L** | log | — | — | A | ✅ |
 | 6 | **`AI123_LIVE_*`** | **L** | — | **L** | — | **C** | ⬜ · **needs INF-GATE** |
-| 7 | `AI1234_SIZING_LIVE_*` | **L** | **L** | **L** | log | **C** | ⬜ |
+| 7 | `AI1234_SIZING_LIVE_*` | **L** | **L** | **L** | log | **C** | ✅ Tester |
 | 8 | **`AI1234_LIVE_*`** | **L** | **L** | **L** | **L** | **C** | ⬜ last |
 
 **Legend:** **L** = LIVE (2) · **log** = SHADOW (1) · **—** = OFF (0)
@@ -439,7 +439,7 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 2. Load preset for target step · EURUSD M1 · 6y.  
 3. Verify trade band · Experts log.  
 4. Append `AI-test-journal.csv`.  
-5. *(When INF-1 done)* run `audit_shadow.py` on CSV.
+5. *(When INF-1 done)* run `audit_shadow.py` on `ORBVWAP_ai_shadow.csv`.
 
 **Does not authorize chart LIVE.**
 

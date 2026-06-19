@@ -14,9 +14,9 @@
 | 2 | `AI1_SHADOW` | SHADOW | OFF | OFF | OFF | ✓ | optional |
 | 3 | `AI123_SHADOW` | LIVE | SHADOW | SHADOW | OFF | ✅ done | — |
 | 4 | `AI1234_SHADOW` | LIVE | SHADOW | LIVE | SHADOW | ✅ done | — |
-| 5 | `AI12_SHADOW` | LIVE | SHADOW | OFF | OFF | ⬜ | — |
+| 5 | `AI12_SHADOW` | LIVE | SHADOW | OFF | OFF | ✅ done | — |
 | 6 | **`AI123_LIVE`** | LIVE | OFF | LIVE | OFF | ⬜ | **deploy** |
-| 7 | `AI1234_SIZING_LIVE` | LIVE | LIVE | LIVE | SHADOW | ⬜ | after 6 |
+| 7 | `AI1234_SIZING_LIVE` | LIVE | LIVE | LIVE | SHADOW | ✅ `AI-1234-SIZING-006` | after 6 |
 | 8 | **`AI1234_LIVE`** | LIVE | LIVE | LIVE | LIVE | ⬜ | last |
 
 **After retrain:** `train_*.py` → recompile EA → reload preset.
@@ -39,15 +39,85 @@
 3. Load `ORBVWAP_AI0_Export_PROD_EURUSD-M1_full.set`.
 4. Run EURUSD M1 backtest (e.g. 6-year window).
 
-## 2. Build dataset — AI-0 ✅
+## 2. Build dataset — AI-0 ✅ · INF-0 validate
 
 ```bash
-pip install pandas pyarrow
+pip install -r Diagnostics/ai/requirements.txt
 
+# Validate tester exports (exit 1 on schema fail)
+python Diagnostics/ai/build_dataset.py ^
+  "%APPDATA%\MetaQuotes\Tester\<terminal>\Agent-127.0.0.1-3000\MQL5\Files\ORBVWAP_decisions.csv" ^
+  "%APPDATA%\MetaQuotes\Tester\<terminal>\Agent-127.0.0.1-3000\MQL5\Files\ORBVWAP_outcomes.csv" ^
+  --validate
+
+# Validate existing parquet only
+python Diagnostics/ai/build_dataset.py --validate-parquet Diagnostics/datasets/ORBVWAP_ai_dataset_v1.parquet
+
+# Standalone validator
+python Diagnostics/ai/schema.py --dataset Diagnostics/datasets/ORBVWAP_ai_dataset_v1.parquet
+```
+
+Build (validates post-merge by default):
+
+```bash
 python Diagnostics/ai/build_dataset.py ^
   "%APPDATA%\MetaQuotes\Tester\<terminal>\Agent-127.0.0.1-3000\MQL5\Files\ORBVWAP_decisions.csv" ^
   "%APPDATA%\MetaQuotes\Tester\<terminal>\Agent-127.0.0.1-3000\MQL5\Files\ORBVWAP_outcomes.csv"
 ```
+
+## 2b. AI shadow audit — INF-1
+
+After `ORBVWAP_AI1234_SHADOW` backtest (`InpEnableAiShadowLog=true` in preset):
+
+```bash
+python Diagnostics/ai/audit_shadow.py ^
+  "%APPDATA%\MetaQuotes\Tester\<terminal>\Agent-127.0.0.1-3000\MQL5\Files\ORBVWAP_ai_shadow.csv"
+
+python Diagnostics/ai/audit_shadow.py --self-test
+```
+
+Contract: `schemas/ai_shadow.v1.json` · EA writes one row per signal evaluation (joinable via `decision_id`).
+
+## 2c. AI-2 sizing shadow — AI12 (Track A step 5)
+
+**Preset:** `ORBVWAP_AI12_SHADOW_PROD_EURUSD-M1` · AI-1 **LIVE** · AI-2 **SHADOW** · AI-3/4 **OFF**
+
+Before Start:
+
+1. Delete old `ORBVWAP_ai_shadow.csv` in Tester `MQL5/Files/` (append-only file).
+2. Compile ORBVWAP v1.23+ · load preset · EURUSD M1 · same 6y window as prior runs.
+
+**Expected MT5 (baseline):** ~**342** trades · PF ~**1.33** · DD ~**8.3%** · net ~**$34** — matches `AI-123-005` (AI-2 SHADOW does not change lots).
+
+After backtest:
+
+```bash
+python Diagnostics/ai/audit_shadow.py ^
+  "%APPDATA%\MetaQuotes\Tester\<agent>\MQL5\Files\ORBVWAP_ai_shadow.csv" ^
+  --check-ai2
+```
+
+Pass: INF-1 audit + **≥2** `ai2_mult` tiers among `{1.0, 1.15, 1.25}` on `ai1_pass=1` rows. Journal row: **`AI-12-006`**.
+
+## 3. Reproducible env — INF-2
+
+```bash
+# Install locked deps (from ORBVWAP root)
+pip install -r requirements-lock.txt
+
+# Run all offline replay gates (temp journal, eps PF ±0.05)
+python Diagnostics/ai/replay_all.py
+# or: make replay-all   (GNU make / Docker)
+
+make simulate-ai2
+make train-all          # retrain + export .mqh (destructive — use with care)
+
+# Docker (optional — same gate inside container)
+docker compose run replay-all
+# or: make docker-replay
+```
+
+Expectations: `Diagnostics/ai/replay_expectations.json` · copy `.env.example` → `.env` for MT5 paths.
 
 Output: `Diagnostics/datasets/ORBVWAP_ai_dataset_v1.parquet`
 

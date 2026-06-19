@@ -1,7 +1,9 @@
 # AI-0 dataset schema
 
-## Source files (Strategy Tester `MQL5/Files/`)
+**INF-0 contract (machine-readable):** `schemas/decisions.v1.json` · `schemas/outcomes.v1.json` · `schemas/dataset.v1.json`  
+**Validator:** `Diagnostics/ai/schema.py` · `build_dataset.py --validate`
 
+## Source files (Strategy Tester `MQL5/Files/`)
 | File | One row per |
 |------|-------------|
 | `ORBVWAP_decisions.csv` | SignalEngine BUY/SELL candidate (pipeline attempt) |

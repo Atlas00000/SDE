@@ -1,0 +1,15 @@
+**/__pycache__
+**/*.pyc
+**/.git
+**/.venv
+**/venv
+*.ex5
+*.log
+Presets/
+Profiles/
+schemas/
+*.md
+!Diagnostics/ai/README.md
+docker-compose.yml
+.env
+.env.*

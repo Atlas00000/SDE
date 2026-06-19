@@ -1,0 +1,31 @@
+{
+  "$schema": "orbvwap-contract/v1",
+  "artifact": "dataset",
+  "version": 1,
+  "source_file": "ORBVWAP_ai_dataset_v1.parquet",
+  "producer": "Diagnostics/ai/build_dataset.py",
+  "extends": ["decisions.v1", "outcomes.v1"],
+  "version_bump_policy": {
+    "summary": "Dataset version tracks decisions/outcomes contract plus derived build columns.",
+    "procedure": [
+      "1. Bump when decisions.vN or outcomes.vN bumps, or when build_dataset.py adds derived columns.",
+      "2. Output path: Diagnostics/datasets/ORBVWAP_ai_dataset_v{N}.parquet",
+      "3. Update models/manifest.json dataset_version after INF-0 PASS."
+    ]
+  },
+  "includes_decisions_columns": true,
+  "additional_columns": [
+    {"name": "close_time_gmt", "dtype": "datetime", "required": false},
+    {"name": "profit", "dtype": "float64", "required": false},
+    {"name": "label_win", "dtype": "float64", "required": false, "note": "nullable for non-executed rows"},
+    {"name": "prod_taken", "dtype": "int64", "required": true, "values": [0, 1]}
+  ],
+  "row_rules": [
+    {
+      "id": "executed_has_label",
+      "description": "prod_executed=1 rows must have non-null label_win after outcomes join",
+      "filter": "prod_executed == 1",
+      "require_not_null": ["label_win", "profit", "close_time_gmt"]
+    }
+  ]
+}

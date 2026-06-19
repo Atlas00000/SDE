@@ -1,6 +1,6 @@
 ; ORBVWAP AI-1+AI-2 SHADOW — PROD v3 + protection gate + sizing log (no lot change)
-; Task: AI-2-003 | AI-1 tau=0.30 | AI-2 tiers 1.0/1.15/1.25
-; Offline gate PASS: holdout PF=1.47 net=12.79 vs AI-1 PF=1.49 net=12.17
+; Task: AI-2-004 | AI-1 LIVE tau=0.30 | AI-2 SHADOW tiers 1.0/1.15/1.25 | AI-3/4 OFF
+; Baseline: match AI-123-005 (~342t PF~1.33) · shadow CSV validates ai2_mult tiers
 
 ; === General ===
 InpMagicNumber=20260611||20260611||1||202606110||N
@@ -67,6 +67,7 @@ InpConsecLossPauseMin=120||120||1||1200||N
 InpEqTrailPct=0.0||0.0||0.000000||20.000000||N
 ; === AI export (AI-0) ===
 InpEnableDecisionExport=false||false||0||true||N
+InpEnableAiShadowLog=true||false||0||true||N
 ; === AI Layer 1 (AI-1) ===
 InpAiGateMode=2||0||0||2||N
 InpAiMinScore=0.0||0.0||0.000000||1.000000||N

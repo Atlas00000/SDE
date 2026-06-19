@@ -1,0 +1,6 @@
+{
+  "AI-0-003": {"verdict": "PASS", "pf_holdout": 1.43},
+  "AI-2-002": {"verdict": "PASS", "pf_holdout": 1.47},
+  "AI-3-003": {"verdict": "PASS", "pf_holdout": 1.43},
+  "AI-4-003": {"verdict": "PASS", "pf_holdout": 2.51, "note": "proxy paths v1 — optimistic"}
+}

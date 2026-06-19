@@ -67,6 +67,7 @@ InpConsecLossPauseMin=120||120||1||1200||N
 InpEqTrailPct=0.0||0.0||0.000000||20.000000||N
 ; === AI export (AI-0) ===
 InpEnableDecisionExport=false||false||0||true||N
+InpEnableAiShadowLog=true||false||0||true||N
 ; === AI Layer 1 (AI-1) ===
 InpAiGateMode=2||0||0||2||N
 InpAiMinScore=0.0||0.0||0.000000||1.000000||N

@@ -1,0 +1,36 @@
+{
+  "$schema": "orbvwap-contract/v1",
+  "artifact": "ai_shadow",
+  "version": 1,
+  "source_file": "ORBVWAP_ai_shadow.csv",
+  "producer": "CAiShadowExport::LogEvaluation (AiShadowExport.mqh)",
+  "version_bump_policy": {
+    "summary": "Bump when shadow columns or mode encoding changes.",
+    "procedure": [
+      "1. Copy ai_shadow.vN.json → ai_shadow.v{N+1}.json.",
+      "2. Update AiShadowExport.mqh header row and audit_shadow.py.",
+      "3. Re-run ORBVWAP_AI1234_SHADOW backtest; audit_shadow.py must PASS."
+    ]
+  },
+  "columns": [
+    {"name": "bar_time_gmt", "dtype": "datetime", "required": true},
+    {"name": "sess_key", "dtype": "string", "required": true, "pattern": "^\\d{4}\\.\\d{2}\\.\\d{2}_(LONDON|NY)$"},
+    {"name": "decision_id", "dtype": "int64", "required": true, "unique": true, "min": 1},
+    {"name": "ai1_score", "dtype": "float64", "required": true, "note": "-1 = not evaluated"},
+    {"name": "ai1_pass", "dtype": "int64", "required": true, "values": [0, 1]},
+    {"name": "ai2_mult", "dtype": "float64", "required": true, "note": "-1 = not evaluated"},
+    {"name": "ai3_allow", "dtype": "int64", "required": true, "values": [-1, 0, 1]},
+    {"name": "ai4_would_scratch", "dtype": "int64", "required": true, "values": [0, 1]},
+    {"name": "mode_ai1", "dtype": "int64", "required": true, "values": [0, 1, 2]},
+    {"name": "mode_ai2", "dtype": "int64", "required": true, "values": [0, 1, 2]},
+    {"name": "mode_ai3", "dtype": "int64", "required": true, "values": [0, 1, 2]},
+    {"name": "mode_ai4", "dtype": "int64", "required": true, "values": [0, 1, 2]},
+    {"name": "ea_version", "dtype": "string", "required": true},
+    {"name": "bundle_id", "dtype": "string", "required": true}
+  ],
+  "audit_gate": {
+    "min_score_buckets": 2,
+    "neutral_scores": [0.5, 1.0],
+    "description": "Among rows with mode_ai1>0 and ai1_score>=0: require >=2 distinct score buckets (2dp) and not 100% stuck on a single neutral/fail-open value."
+  }
+}

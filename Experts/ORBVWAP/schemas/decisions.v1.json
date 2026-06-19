@@ -1,0 +1,84 @@
+{
+  "$schema": "orbvwap-contract/v1",
+  "artifact": "decisions",
+  "version": 1,
+  "source_file": "ORBVWAP_decisions.csv",
+  "producer": "CDecisionExport::LogPipeline (DecisionExport.mqh)",
+  "version_bump_policy": {
+    "summary": "Bump major version when column names, types, or semantics change incompatibly.",
+    "procedure": [
+      "1. Copy decisions.vN.json → decisions.v{N+1}.json; set version and document changes in changelog.",
+      "2. Update DecisionExport.mqh header/row writer if EA export changed.",
+      "3. Extend Diagnostics/ai/schema.py validators for v{N+1}.",
+      "4. Re-export 6y backtest; run build_dataset.py --validate; commit new parquet as v{N+1}.",
+      "5. Retrain AI models only after dataset v{N+1} passes INF-0 gate (manifest bump).",
+      "6. Keep vN validators until no deployed bundle references dataset vN."
+    ],
+    "compatible_changes_no_bump": [
+      "Additional optional columns at end of CSV",
+      "Stricter validation rules on existing columns",
+      "Documentation-only edits"
+    ],
+    "requires_bump": [
+      "Rename or remove column",
+      "Change column type or unit",
+      "Change reject_stage / reject_code semantics",
+      "Change decision_id assignment rules"
+    ]
+  },
+  "columns": [
+    {"name": "decision_id", "dtype": "int64", "required": true, "unique": true, "min": 1},
+    {"name": "bar_time_gmt", "dtype": "datetime", "required": true},
+    {"name": "direction", "dtype": "enum", "required": true, "values": ["BUY", "SELL"]},
+    {"name": "session", "dtype": "enum", "required": true, "values": ["LONDON", "NY"]},
+    {"name": "hour_gmt", "dtype": "int64", "required": true, "min": 0, "max": 23},
+    {"name": "weekday", "dtype": "int64", "required": true, "min": 0, "max": 6},
+    {"name": "ny_min_since_open", "dtype": "int64", "required": true, "min": 0},
+    {"name": "range_width", "dtype": "float64", "required": true, "min": 0},
+    {"name": "range_width_atr", "dtype": "float64", "required": true, "min": 0},
+    {"name": "atr", "dtype": "float64", "required": true, "min": 0},
+    {"name": "vol_ratio", "dtype": "float64", "required": true, "min": 0},
+    {"name": "vwap_dist_atr", "dtype": "float64", "required": true, "min": 0},
+    {"name": "spread_pct_range", "dtype": "float64", "required": true, "min": 0},
+    {"name": "spread_points", "dtype": "int64", "required": true, "min": 0},
+    {"name": "min_rr", "dtype": "float64", "required": true, "min": 0},
+    {"name": "entry", "dtype": "float64", "required": true},
+    {"name": "sl", "dtype": "float64", "required": true},
+    {"name": "tp", "dtype": "float64", "required": true},
+    {"name": "can_trade_ok", "dtype": "int64", "required": true, "values": [0, 1]},
+    {"name": "setup_ok", "dtype": "int64", "required": true, "values": [0, 1]},
+    {"name": "prod_executed", "dtype": "int64", "required": true, "values": [0, 1]},
+    {"name": "reject_stage", "dtype": "string", "required": true, "nullable_empty": true, "values": ["", "CAN_TRADE", "SETUP"]},
+    {"name": "reject_code", "dtype": "string", "required": true, "nullable_empty": true},
+    {"name": "position_id", "dtype": "int64", "required": true, "min": 0}
+  ],
+  "row_rules": [
+    {
+      "id": "executed_requires_gates",
+      "description": "Executed trades must pass risk and setup gates",
+      "filter": "prod_executed == 1",
+      "require": {"can_trade_ok": 1, "setup_ok": 1}
+    },
+    {
+      "id": "executed_requires_position",
+      "description": "Executed rows must carry a broker position id",
+      "filter": "prod_executed == 1",
+      "require_column_positive": ["position_id"]
+    },
+    {
+      "id": "reject_stage_consistency",
+      "description": "Reject stage must match gate flags",
+      "note": "Validated in schema.py: CAN_TRADE when can_trade_ok=0; SETUP when can_trade_ok=1 and setup_ok=0"
+    }
+  ],
+  "integrity_rules": [
+    {
+      "id": "unique_decision_id",
+      "description": "decision_id must be unique across all rows"
+    },
+    {
+      "id": "unique_executed_position_id",
+      "description": "position_id must be unique among prod_executed=1 rows with position_id > 0"
+    }
+  ]
+}

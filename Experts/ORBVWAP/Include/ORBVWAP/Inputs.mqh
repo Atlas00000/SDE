@@ -81,6 +81,7 @@ input double InpEqTrailPct          = 0.0;   // P2D-004: 0=off, halt if equity d
 
 input group "=== AI export (AI-0) ==="
 input bool   InpEnableDecisionExport = false;  // AI-0: write ORBVWAP_decisions.csv + outcomes
+input bool   InpEnableAiShadowLog    = false;  // INF-1: write ORBVWAP_ai_shadow.csv
 
 input group "=== AI Layer 1 (AI-1) ==="
 input ENUM_ORBVWAP_AI_GATE_MODE InpAiGateMode = ORBVWAP_AI_OFF; // OFF / SHADOW (log) / LIVE (block)

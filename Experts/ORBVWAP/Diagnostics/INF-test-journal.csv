@@ -1,1 +1,7 @@
-task_id,preset_or_artifact,dataset_or_tool,holdout_cut,n_full,pf_full,n_holdout,pf_holdout,verdict,notes
+task_id,preset_or_artifact,dataset_or_tool,holdout_cut,n_full,pf_full,n_holdout,pf_holdout,verdict,notes
+
+INF-0-006,ORBVWAP_ai_dataset_v1.parquet,schema.py --validate-parquet,full,16565,1.29,358,1.29,PASS,decisions+outcomes+dataset v1 contracts; 0 dup decision_id; 0 dup executed position_id; gate INF-0 complete
+INF-1-005,audit_shadow.py --self-test,audit_shadow.py,self,2,2,2,2,PASS,schema + score-bucket gate logic; neutral-stuck detection
+INF-1-006,ORBVWAP_AI1234_SHADOW_PROD_EURUSD-M1,audit_shadow.py on ORBVWAP_ai_shadow.csv,MT5_6y,16965,55,330,55,PASS,EA v1.23; 16965 eval rows; ai1 55 buckets (0.053-0.769); ai3 skip 923; MT5 n=316 PF=1.53 DD=5.89% net=46.18; not fail-open
+INF-2-006,replay_all.py,replay_expectations.json eps=0.05,full,4,2.51,4,2.51,PASS,local + Docker orbvwap-ai image; holdout pf 1.43/1.47/1.43/2.51; pip timeout 300s in Dockerfile
+

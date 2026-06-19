@@ -7,6 +7,9 @@
 # Python
 __pycache__/
 *.pyc
+.env
+.venv/
+venv/
 
 # OS / IDE
 .DS_Store

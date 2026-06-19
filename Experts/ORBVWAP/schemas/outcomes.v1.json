@@ -1,0 +1,27 @@
+{
+  "$schema": "orbvwap-contract/v1",
+  "artifact": "outcomes",
+  "version": 1,
+  "source_file": "ORBVWAP_outcomes.csv",
+  "producer": "CDecisionExport::OnTradeTransaction (DecisionExport.mqh)",
+  "version_bump_policy": {
+    "summary": "Bump with decisions.vN when join key or label semantics change.",
+    "procedure": [
+      "1. Bump outcomes.vN in lockstep with decisions if position_id join changes.",
+      "2. If only adding optional exit metrics columns, minor doc update may suffice.",
+      "3. Re-run build_dataset.py --validate after export."
+    ]
+  },
+  "columns": [
+    {"name": "position_id", "dtype": "int64", "required": true, "unique": true, "min": 1},
+    {"name": "close_time_gmt", "dtype": "datetime", "required": true},
+    {"name": "profit", "dtype": "float64", "required": true},
+    {"name": "label_win", "dtype": "int64", "required": true, "values": [0, 1]}
+  ],
+  "integrity_rules": [
+    {
+      "id": "unique_position_id",
+      "description": "One outcome row per closed position"
+    }
+  ]
+}

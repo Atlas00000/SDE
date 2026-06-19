@@ -56,6 +56,13 @@ public:
       s_next_id = 1;
      }
 
+   static int AllocateDecisionId()
+     {
+      const int id = s_next_id;
+      s_next_id++;
+      return(id);
+     }
+
    static void LogPipeline(const string               symbol,
                          const SSessionContext       &session,
                          const SSignalResult         &signal_result,
@@ -67,7 +74,8 @@ public:
                          const STradeSetup           &setup,
                          const bool                   setup_ok,
                          const bool                   executed,
-                         const ulong                  position_id)
+                         const ulong                  position_id,
+                         const int                    decision_id)
      {
       if(!InpEnableDecisionExport)
          return;
@@ -128,8 +136,6 @@ public:
          reject_stage = "SETUP";
          reject_code  = setup.reject_reason;
         }
-
-      const int decision_id = s_next_id++;
 
       const string line = StringFormat(
          "%d,%s,%s,%s,%d,%d,%d,%.5f,%.4f,%.5f,%.4f,%.4f,%.2f,%d,%.4f,%.5f,%.5f,%.5f,%d,%d,%d,%s,%s,%I64u",

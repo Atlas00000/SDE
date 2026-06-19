@@ -11,6 +11,9 @@
 #define ORBVWAP_DECISIONS_FILE       "ORBVWAP_decisions.csv"
 #define ORBVWAP_OUTCOMES_FILE        "ORBVWAP_outcomes.csv"
 #define ORBVWAP_PATHS_FILE           "ORBVWAP_paths.csv"
+#define ORBVWAP_SHADOW_FILE          "ORBVWAP_ai_shadow.csv"
+#define ORBVWAP_EA_VERSION           "1.23"
+#define ORBVWAP_BUNDLE_ID            "orbvwap-v1.23-ai1234"
 
 #define ORBVWAP_REJECT_OUTSIDE_SESSION   "OUTSIDE_SESSION"
 #define ORBVWAP_REJECT_ENTRY_CUTOFF      "ENTRY_CUTOFF"

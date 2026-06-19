@@ -85,7 +85,7 @@ Market Data (M1)
 |----------|-------|------|---------------|----------|---------------|--------------|
 | **AI-0** | — | Pipeline & dataset | ✅ CLOSED | N/A | ✅ export replay | N/A |
 | **AI-1** | **L1** | Signal scorer | ✅ CLOSED | ✅ v1.19 | ✅ `AI-123-005` | ⬜ when AI-1+3 stack signed off |
-| **AI-2** | **L2** | Dynamic sizing | ✅ CLOSED | ✅ v1.20 | ⬜ dedicated `AI12` run | ⬜ after AI-2 MT5 PASS |
+| **AI-2** | **L2** | Dynamic sizing | ✅ CLOSED | ✅ v1.20 | ✅ `AI-12-006` | ⬜ `AI1234_SIZING_LIVE` |
 | **AI-3** | **L3** | Regime gate | ✅ CLOSED | ✅ v1.21 | ✅ `AI-1234-005` | ⬜ when AI-1+3 stack signed off |
 | **AI-4** | **L4** | Exit overlay | ✅ CLOSED *(proxy paths)* | ✅ v1.22 | ✅ log only `AI-1234-005` | ⬜ last · after AI-4 LIVE MT5 + optional v2 paths |
 
@@ -250,7 +250,7 @@ Market Data (M1)
 | **AI-2-001** | `replay_sizing.py` bucket replay | ✅ PASS | — | — |
 | **AI-2-002** | Ablation AI-1 vs AI-1+AI-2 | ✅ PASS · PF 1.47 net 12.79 | — | — |
 | **AI-2-003** | `InpAiSizeMode` · `AiSizer.mqh` | ✅ DONE · v1.20 | — | — |
-| **AI-2-004** | MT5 shadow `ORBVWAP_AI12_SHADOW` | ⬜ UNDONE | — | Before AI-2 LIVE · confirm lot mult logs |
+| **AI-2-004** | MT5 shadow `ORBVWAP_AI12_SHADOW` | ✅ PASS · 343t PF=1.33 | — | Before AI-2 LIVE · confirm lot mult logs |
 | **AI-2-005** | Promote `InpAiSizeMode=LIVE` | ⬜ UNDONE | — | After AI-2-004 PASS · AI-1+3 stable |
 
 **Offline training:** ✅ **CLOSED**.
@@ -376,7 +376,7 @@ PROD + AI-3 + AI-1 + AI-2 + AI-4
 | `ORBVWAP_PROD_EURUSD-M1` | OFF | OFF | OFF | OFF | Baseline |
 | `ORBVWAP_AI0_Export_*` | OFF | OFF | OFF | OFF | Export CSV |
 | `ORBVWAP_AI1_SHADOW_*` | SHADOW | OFF | OFF | OFF | Score log only |
-| `ORBVWAP_AI12_SHADOW_*` | LIVE | SHADOW | OFF | OFF | Sizing log ⬜ |
+| `ORBVWAP_AI12_SHADOW_*` | LIVE | SHADOW | OFF | OFF | Sizing log ✅ `AI-12-006` |
 | `ORBVWAP_AI123_SHADOW_*` | LIVE | SHADOW | SHADOW | OFF | ✅ journal |
 | `ORBVWAP_AI1234_SHADOW_*` | LIVE | SHADOW | LIVE | SHADOW | ✅ journal |
 | **`ORBVWAP_AI123_LIVE_*`** | LIVE | OFF | LIVE | OFF | **Deploy sign-off** ⬜ |

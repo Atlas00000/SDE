@@ -1,7 +1,7 @@
 {
   "project": "ORBVWAP",
   "prod_preset": "ORBVWAP_PROD_EURUSD-M1.set",
-  "ea_version": "1.22",
+  "ea_version": "1.23",
   "deploy_path": "offline PASS -> MT5 shadow backtest -> LIVE",
   "models": [
     {"model_id": "ai1_v1", "layer": "L1", "gate_verdict": "PASS"},
