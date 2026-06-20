@@ -280,6 +280,9 @@ int OnInit()
                                      EnumToString(PERIOD_CURRENT),
                                      (int)InpMagicNumber,
                                      InpGmtOffsetHours));
+   COrbVwapLogger::Info(StringFormat("bundle_id=%s ea_version=%s",
+                                     ORBVWAP_BUNDLE_ID,
+                                     ORBVWAP_EA_VERSION));
    return(INIT_SUCCEEDED);
   }
 

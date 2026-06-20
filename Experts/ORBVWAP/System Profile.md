@@ -5,6 +5,8 @@
 **Validation:** P0–P4C in-sample sweeps on locked harness · **Forward test:** deferred (P3-004)  
 **Last updated:** 2026-06-11
 
+> **Doc ownership:** This file owns **PROD v3 edge and baseline metrics**. AI wiring / INF gates → [System Design.md](./System%20Design.md). AI models → [aidesign.md](./aidesign.md).
+
 Reference: [Edge Discovery.md](./Edge%20Discovery.md) · [Phase0-Harness.md](./Phase0-Harness.md) · [P4C-003 decision memo](./Diagnostics/P4C-003-decision-memo.md)
 
 > **How to read this document:** Metrics are **ratio- and behaviour-focused** (PF, WR, DD%, payoff, correlations, hold times). Dollar balance and deposit are **ignored** — they scale with lot size and are not comparable across accounts.

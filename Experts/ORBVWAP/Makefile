@@ -2,13 +2,37 @@
 PYTHON ?= python
 AI_DIR := Diagnostics/ai
 
-.PHONY: install replay-all train-all simulate-ai2 validate-schema audit-shadow docker-replay
+.PHONY: install replay-all test-golden update-golden parity-check export-feature-sample walkforward build-bundle verify-bundle status train-all simulate-ai2 validate-schema audit-shadow docker-replay
 
 install:
 	$(PYTHON) -m pip install -r requirements-lock.txt
 
 replay-all:
 	$(PYTHON) $(AI_DIR)/replay_all.py
+
+test-golden:
+	$(PYTHON) -m pytest tests/test_replay_golden.py -v
+
+update-golden:
+	$(PYTHON) $(AI_DIR)/golden_replay.py --update-golden
+
+parity-check:
+	$(PYTHON) $(AI_DIR)/parity_check.py --all-rows
+
+export-feature-sample:
+	$(PYTHON) $(AI_DIR)/export_feature_sample.py
+
+walkforward:
+	$(PYTHON) $(AI_DIR)/walkforward.py
+
+build-bundle:
+	$(PYTHON) scripts/build_bundle.py
+
+verify-bundle:
+	$(PYTHON) scripts/build_bundle.py --verify
+
+status:
+	$(PYTHON) scripts/status.py --write
 
 train-all:
 	$(PYTHON) $(AI_DIR)/train_l1.py

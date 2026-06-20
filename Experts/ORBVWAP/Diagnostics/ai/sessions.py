@@ -24,21 +24,26 @@ def session_key(df: pd.DataFrame) -> pd.Series:
     return df["bar_time_gmt"].dt.date.astype(str) + "_" + df["session"]
 
 
-def build_sessions(dataset: Path = DEFAULT_DATASET) -> pd.DataFrame:
-    raw = prepare_features(pd.read_parquet(dataset))
-    trades = raw.loc[executed_mask(raw)].copy()
-    trades["sess_key"] = session_key(trades)
-    trades = trades.sort_values("bar_time_gmt").reset_index(drop=True)
+def build_sessions_from_trades(trades: pd.DataFrame) -> pd.DataFrame:
+    """Build session table from an executed-trade frame (walk-forward safe)."""
+    out = prepare_features(trades.loc[executed_mask(trades)].copy())
+    out["sess_key"] = session_key(out)
+    out = out.sort_values("bar_time_gmt").reset_index(drop=True)
 
-    trades["prior_session_loss"] = 0.0
-    for i in range(1, len(trades)):
-        trades.loc[trades.index[i], "prior_session_loss"] = (
-            1.0 if trades.iloc[i - 1]["label_win"] == 0 else 0.0
+    out["prior_session_loss"] = 0.0
+    for i in range(1, len(out)):
+        out.loc[out.index[i], "prior_session_loss"] = (
+            1.0 if out.iloc[i - 1]["label_win"] == 0 else 0.0
         )
 
-    trades["label_chop"] = (1 - trades["label_win"]).astype(int)
-    trades["regime"] = trades["label_chop"].map({0: "TRENDING", 1: "CHOPPY"})
-    return trades
+    out["label_chop"] = (1 - out["label_win"]).astype(int)
+    out["regime"] = out["label_chop"].map({0: "TRENDING", 1: "CHOPPY"})
+    return out
+
+
+def build_sessions(dataset: Path = DEFAULT_DATASET) -> pd.DataFrame:
+    raw = prepare_features(pd.read_parquet(dataset))
+    return build_sessions_from_trades(raw)
 
 
 def attach_session_allow(trades: pd.DataFrame, allow: pd.Series) -> pd.DataFrame:

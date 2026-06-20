@@ -4,88 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import json
-import subprocess
 import sys
-import tempfile
-from pathlib import Path
 
-import pandas as pd
-
-ROOT = Path(__file__).resolve().parents[2]
-AI_DIR = Path(__file__).resolve().parent
-DATASET = ROOT / "Diagnostics" / "datasets" / "ORBVWAP_ai_dataset_v1.parquet"
-EXPECTATIONS = AI_DIR / "replay_expectations.json"
-
-# Holdout PF tolerances vs committed journal (AI-test-journal.csv)
-DEFAULT_EPS_PF = 0.05
-
-
-def load_expectations() -> dict:
-    if EXPECTATIONS.exists():
-        return json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
-    return {
-        "AI-0-003": {"verdict": "PASS", "pf_holdout": 1.43},
-        "AI-2-002": {"verdict": "PASS", "pf_holdout": 1.47},
-        "AI-3-003": {"verdict": "PASS", "pf_holdout": 1.43},
-        "AI-4-003": {"verdict": "PASS", "pf_holdout": 1.55},
-    }
-
-
-def run_step(
-    script: str,
-    journal: Path,
-    tmp: Path,
-    extra: list[str] | None = None,
-) -> subprocess.CompletedProcess:
-    cmd = [
-        sys.executable,
-        str(AI_DIR / script),
-        "--journal",
-        str(journal),
-    ]
-    if script == "replay_policy.py":
-        cmd.insert(2, str(DATASET))
-    if script == "replay_sizing.py":
-        cmd.extend(
-            [
-                "--ai2-out",
-                str(tmp / "ai2_v1.json"),
-                "--mqh-out",
-                str(tmp / "AiSizer.mqh"),
-            ]
-        )
-    if extra:
-        cmd.extend(extra)
-    return subprocess.run(cmd, cwd=str(AI_DIR), capture_output=True, text=True)
-
-
-def validate_journal(journal: Path, eps_pf: float) -> tuple[list[str], dict]:
-    errors: list[str] = []
-    metrics: dict = {}
-    expected = load_expectations()
-
-    if not journal.exists():
-        return ["journal not created"], metrics
-
-    df = pd.read_csv(journal)
-    for task_id, spec in expected.items():
-        rows = df[df["task_id"] == task_id]
-        if rows.empty:
-            errors.append(f"missing journal row: {task_id}")
-            continue
-        row = rows.iloc[-1]
-        verdict = str(row["verdict"])
-        pf = float(row["pf_holdout"])
-        metrics[task_id] = {"verdict": verdict, "pf_holdout": pf}
-
-        if verdict != spec["verdict"]:
-            errors.append(f"{task_id}: verdict {verdict} != {spec['verdict']}")
-        exp_pf = float(spec["pf_holdout"])
-        if abs(pf - exp_pf) > eps_pf:
-            errors.append(f"{task_id}: pf_holdout {pf:.2f} vs expected {exp_pf:.2f} (eps={eps_pf})")
-
-    return errors, metrics
+from replay_runner import DATASET, DEFAULT_EPS_PF, run_all_replays, validate_against_expectations
 
 
 def main() -> int:
@@ -98,42 +19,31 @@ def main() -> int:
         print(f"Missing dataset: {DATASET}", file=sys.stderr)
         return 1
 
-    steps = [
-        "replay_policy.py",
-        "replay_regime.py",
-        "replay_sizing.py",
-        "replay_exit.py",
-    ]
+    try:
+        journal, tmpdir = run_all_replays(verbose=args.verbose)
+        with tmpdir:
+            from replay_runner import REPLAY_STEPS, extract_journal_metrics
 
-    with tempfile.TemporaryDirectory(prefix="orbvwap_replay_") as tmpdir:
-        tmp = Path(tmpdir)
-        journal = tmp / "replay_journal.csv"
-        for script in steps:
-            result = run_step(script, journal, tmp)
-            if args.verbose and result.stdout:
-                print(result.stdout)
-            if result.returncode != 0:
-                print(f"[FAIL] {script} exit {result.returncode}", file=sys.stderr)
-                if result.stderr:
-                    print(result.stderr, file=sys.stderr)
-                if result.stdout:
-                    print(result.stdout, file=sys.stderr)
-                return 1
-            print(f"[OK] {script}")
+            for script in REPLAY_STEPS:
+                print(f"[OK] {script}")
+            metrics = extract_journal_metrics(journal)
+    except RuntimeError as exc:
+        print(f"[FAIL] {exc}", file=sys.stderr)
+        return 1
 
-        errors, metrics = validate_journal(journal, args.eps_pf)
-        print("\n=== INF-2 replay-all summary ===")
-        for task_id, m in metrics.items():
-            print(f"  {task_id}: {m['verdict']} pf_holdout={m['pf_holdout']:.2f}")
+    errors, summary = validate_against_expectations(metrics, args.eps_pf)
+    print("\n=== INF-2 replay-all summary ===")
+    for task_id, m in summary.items():
+        print(f"  {task_id}: {m['verdict']} pf_holdout={m['pf_holdout']:.2f}")
 
-        if errors:
-            print("[FAIL]")
-            for err in errors:
-                print(f"  - {err}")
-            return 1
+    if errors:
+        print("[FAIL]")
+        for err in errors:
+            print(f"  - {err}")
+        return 1
 
-        print("[PASS] all replay gates within tolerance")
-        return 0
+    print("[PASS] all replay gates within tolerance")
+    return 0
 
 
 if __name__ == "__main__":

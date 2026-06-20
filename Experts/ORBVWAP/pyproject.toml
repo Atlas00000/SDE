@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = []
+dev = ["pytest>=8.3,<9"]
 
 [tool.setuptools]
 packages = []

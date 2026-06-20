@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "AI-0-003",
+  "replay_script": "replay_policy.py",
+  "verdict": "PASS",
+  "n_full": 358,
+  "pf_full": 1.29,
+  "n_holdout": 100,
+  "pf_holdout": 1.43,
+  "holdout_cut": "2024-01-16 14:00:00",
+  "notes": "AI-0 baseline replay",
+  "tolerances": {
+    "pf_holdout": 0.05,
+    "pf_full": 0.05,
+    "n_holdout": 0,
+    "n_full": 0
+  }
+}

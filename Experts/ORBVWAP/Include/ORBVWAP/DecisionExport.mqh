@@ -11,6 +11,7 @@
 #include "OpeningRange.mqh"
 #include "SessionVwap.mqh"
 #include "IndicatorManager.mqh"
+#include "AiFeatures.mqh"
 
 class CDecisionExport
   {
@@ -92,37 +93,19 @@ public:
       indicators.GetATR(1, atr);
 
       const double range_width = opening_range.Width();
-      double range_width_atr   = 0.0;
-      if(atr > 0.0)
-         range_width_atr = range_width / atr;
+      const double min_rr = setup_ok ? setup.risk_reward : 0.0;
 
-      long tick_vol = 0;
-      double vol_ma = 0.0;
-      indicators.GetTickVolume(1, tick_vol);
-      indicators.GetVolumeMA(1, vol_ma);
-      double vol_ratio = 0.0;
-      if(vol_ma > 0.0)
-         vol_ratio = (double)tick_vol / vol_ma;
+      double feats[];
+      CAiFeatures::FillAi1(symbol, session, signal_result.signal, opening_range, session_vwap,
+                           indicators, min_rr, feats);
 
-      double vwap = 0.0;
-      session_vwap.Value(vwap);
-      const double close_1 = iClose(symbol, PERIOD_CURRENT, 1);
-      double vwap_dist_atr = 0.0;
-      if(atr > 0.0 && vwap > 0.0)
-         vwap_dist_atr = MathAbs(close_1 - vwap) / atr;
-
+      const double range_width_atr = feats[0];
+      const double vol_ratio = feats[1];
+      const double vwap_dist_atr = feats[2];
+      const double spread_pct_range = feats[3];
       const int spread_pts = SpreadPoints(symbol);
-      double spread_pct_range = 0.0;
-      if(range_width > 0.0)
-        {
-         const double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
-         if(point > 0.0)
-            spread_pct_range = 100.0 * (spread_pts * point) / range_width;
-        }
 
-      int ny_min_since_open = 0;
-      if(session.session == ORBVWAP_SESSION_NY && session.session_open_gmt > 0)
-         ny_min_since_open = (int)((bar_gmt - session.session_open_gmt) / 60);
+      int ny_min_since_open = (int)feats[7];
 
       string reject_stage = "";
       string reject_code  = "";
@@ -153,7 +136,7 @@ public:
          vwap_dist_atr,
          spread_pct_range,
          spread_pts,
-         setup_ok ? setup.risk_reward : 0.0,
+         min_rr,
          setup.entry_price,
          setup.sl,
          setup.tp,
@@ -164,12 +147,20 @@ public:
          reject_code,
          position_id);
 
-      WriteLine(ORBVWAP_DECISIONS_FILE,
-                "decision_id,bar_time_gmt,direction,session,hour_gmt,weekday,ny_min_since_open,"
-                "range_width,range_width_atr,atr,vol_ratio,vwap_dist_atr,spread_pct_range,"
-                "spread_points,min_rr,entry,sl,tp,can_trade_ok,setup_ok,prod_executed,"
-                "reject_stage,reject_code,position_id",
-                line);
+      string header =
+         "decision_id,bar_time_gmt,direction,session,hour_gmt,weekday,ny_min_since_open,"
+         "range_width,range_width_atr,atr,vol_ratio,vwap_dist_atr,spread_pct_range,"
+         "spread_points,min_rr,entry,sl,tp,can_trade_ok,setup_ok,prod_executed,"
+         "reject_stage,reject_code,position_id";
+      string out_line = line;
+
+      if(InpEnableFeatureParityExport)
+        {
+         header += "," + CAiFeatures::FeatureNamesCsv();
+         out_line += "," + CAiFeatures::FeatureValuesCsv(feats);
+        }
+
+      WriteLine(ORBVWAP_DECISIONS_FILE, header, out_line);
      }
 
    static void OnTradeTransaction(const MqlTradeTransaction &trans)

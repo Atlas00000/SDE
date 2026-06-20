@@ -3,8 +3,9 @@
 **Document:** `System Design.md`  
 **EA version:** 1.22 · **Production:** PROD v3 (frozen signal/exit geometry)  
 **AI models:** Offline training **CLOSED** (AI-0…AI-4) · see [ailayers.md](./ailayers.md)  
-**Infra pipeline:** **INF-0–2** ✅ · **INF-3…INF-7** ⬜ · **blocks chart LIVE** until INF-GATE PASS  
-**References:** [aidesign.md](./aidesign.md) · [ailayers.md](./ailayers.md) · [System Profile.md](./System%20Profile.md)
+**Infra pipeline:** **INF-0–7** ✅ · **INF-GATE PASS** · chart LIVE steps 6 & 8 unlocked (demo sign-off still required)
+
+> **Doc ownership:** Wiring / INF / preset ladder → this file. AI models → [aidesign.md](./aidesign.md). PROD edge → [System Profile.md](./System%20Profile.md). Ops → [AGENTS.md](./AGENTS.md) · [STATUS.md](./STATUS.md).
 
 ---
 
@@ -15,7 +16,7 @@ Operational system design for ORBVWAP: EA layout, AI wiring, offline → Tester 
 | Track | Phase prefix | Status | Unlocks |
 |-------|--------------|--------|---------|
 | **Edge + AI models** | AI-0…AI-4 | Offline ✅ · Tester partial | MT5 Tester SHADOW/LIVE presets |
-| **Infra + pipeline** | INF-0…INF-7 | **INF-0–2** ✅ · INF-3…7 ⬜ | **Chart LIVE** · forward demo |
+| **Infra + pipeline** | INF-0…INF-7 | **INF-0–7** ✅ · **INF-GATE PASS** | **Chart LIVE** · forward demo |
 | **Forward validation** | P3-004 | Deferred | Real-money cadence |
 
 **Critical rule:** **Strategy Tester sign-off** and **live chart / demo sign-off** are **different gates**. Chart LIVE (preset steps 6–8) runs **only after INF-GATE PASS**. Until then, max stage = **MT5 Tester** + journal row.
@@ -271,13 +272,13 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-3-001** | `tests/golden/ai1_v1.json` expected holdout metrics | Snapshot | ⬜ |
-| **INF-3-002** | Golden files for AI-2, AI-3, AI-4 | Snapshots | ⬜ |
-| **INF-3-003** | `tests/test_replay_golden.py` · ε tolerances | Pytest | ⬜ |
-| **INF-3-004** | GitHub Actions (or local CI script) on push | Workflow | ⬜ |
-| **INF-3-005** | Update golden only via explicit `--update-golden` | Safety flag | ⬜ |
+| **INF-3-001** | `tests/golden/ai0_v1.json` — AI-0 baseline holdout metrics | Snapshot | ✅ |
+| **INF-3-002** | Golden files `ai2_v1.json`, `ai3_v1.json`, `ai4_v1.json` | Snapshots | ✅ |
+| **INF-3-003** | `tests/test_replay_golden.py` · ε tolerances (PF ±0.05) | Pytest | ✅ |
+| **INF-3-004** | `.github/workflows/orbvwap-ai-replay.yml` on ORBVWAP push | Workflow | ✅ |
+| **INF-3-005** | `golden_replay.py --update-golden` only | Safety flag | ✅ |
 
-**Gate:** CI PASS on main · intentional metric change requires golden bump + journal note.
+**Gate:** CI PASS on main · intentional metric change requires `--update-golden` + `INF-test-journal.csv` note. ✅ PASS local `make test-golden` (`INF-3-006`); GitHub Actions: `orbvwap-ai-replay.yml`.
 
 ---
 
@@ -287,12 +288,12 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-4-001** | `export_feature_sample.py` — N rows dual columns | Sample parquet | ⬜ |
-| **INF-4-002** | EA harness or extended decision export with raw features | MQL5 side | ⬜ |
-| **INF-4-003** | `parity_check.py` · max abs delta per feature | Report | ⬜ |
-| **INF-4-004** | INF-GATE requires parity PASS | Gate rule | ⬜ |
+| **INF-4-001** | `export_feature_sample.py` — N rows dual columns | Sample parquet | ✅ |
+| **INF-4-002** | `AiFeatures.mqh` shared by export + `AiScorer` · optional `feat_*` CSV cols | MQL5 side | ✅ |
+| **INF-4-003** | `parity_check.py` · max abs delta per feature | Report | ✅ |
+| **INF-4-004** | INF-GATE requires parity PASS | Gate rule | ✅ |
 
-**Gate:** All FEATURE_ORDER columns · max Δ &lt; 1e-4 (or documented exception).
+**Gate:** All FEATURE_ORDER columns · max Δ &lt; 1e-4 on executed rows. ✅ PASS `parity_check.py --all-rows` (`INF-4-006`); CI step in `orbvwap-ai-replay.yml`.
 
 ---
 
@@ -302,11 +303,11 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-5-001** | `walkforward.py` — 3 rolling cuts | Metrics table | ⬜ |
-| **INF-5-002** | Run on AI-1 + AI-3 + AI-2 stack | Journal rows | ⬜ |
-| **INF-5-003** | Pass rule: no window PF &lt; PROD×0.95 | Gate | ⬜ |
+| **INF-5-001** | `walkforward.py` — 3 rolling cuts | Metrics table | ✅ |
+| **INF-5-002** | Run on AI-3 + AI-1 + AI-2 stack | Journal rows | ✅ |
+| **INF-5-003** | Pass rule: stack PF ≥ PROD×0.95 per window | Gate | ✅ |
 
-**Gate:** 3 windows PASS · row per window in `INF-test-journal.csv`.
+**Gate:** 3 windows PASS · row per window in `INF-test-journal.csv`. ✅ PASS `walkforward.py` (`INF-5-006`); WF-1..3 stack PF 1.18 / 2.25 / 1.33 vs prod 0.83 / 1.66 / 1.28.
 
 ---
 
@@ -316,12 +317,12 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-6-001** | Extend `models/manifest.json` → `bundle_id`, `git_sha`, `presets[]` | Bundle schema | ⬜ |
-| **INF-6-002** | `scripts/build_bundle.py` — stamp EA version + models | Artifact | ⬜ |
-| **INF-6-003** | EA logs `bundle_id` at `OnInit` | Traceability | ⬜ |
-| **INF-6-004** | Chart LIVE uses pinned bundle only | Ops rule | ⬜ |
+| **INF-6-001** | Extend `models/manifest.json` → `bundle_id`, `git_sha`, `presets[]` | Bundle schema | ✅ |
+| **INF-6-002** | `scripts/build_bundle.py` — stamp EA version + models | Artifact | ✅ |
+| **INF-6-003** | EA logs `bundle_id` at `OnInit` | Traceability | ✅ |
+| **INF-6-004** | Chart LIVE uses pinned bundle only | Ops rule | ✅ |
 
-**Gate:** Tester + chart run share same `bundle_id` in logs/CSV.
+**Gate:** Tester + chart run share same `bundle_id` in logs/CSV. ✅ PASS `build_bundle.py --verify` (`INF-6-006`); `orbvwap-v1.23-ai1234` · git `b9f3328` · 9 presets pinned.
 
 ---
 
@@ -331,12 +332,12 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-7-001** | `AGENTS.md` — repo map, commands, gates | Root doc | ⬜ |
-| **INF-7-002** | `scripts/status.py` → `STATUS.md` from journals | Live dashboard | ⬜ |
-| **INF-7-003** | `Diagnostics/INF-test-journal.csv` | Infra audit trail | ⬜ |
-| **INF-7-004** | Doc ownership: Design=wiring · aidesign=models · Profile=edge | Reduce duplication | ⬜ |
+| **INF-7-001** | `AGENTS.md` — repo map, commands, gates | Root doc | ✅ |
+| **INF-7-002** | `Scripts/status.py` → `STATUS.md` from journals | Live dashboard | ✅ |
+| **INF-7-003** | `Diagnostics/INF-test-journal.csv` | Infra audit trail | ✅ |
+| **INF-7-004** | Doc ownership: Design=wiring · aidesign=models · Profile=edge | Reduce duplication | ✅ |
 
-**Gate:** `python scripts/status.py` prints AI + INF gate summary in one table.
+**Gate:** `python Scripts/status.py` prints AI + INF gate summary in one table. ✅ PASS `make status` (`INF-7-006`); **INF-GATE PASS** declared in [STATUS.md](./STATUS.md).
 
 ---
 
@@ -413,7 +414,7 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 | 3 | `AI123_SHADOW_*` | **L** | log | log | — | A | ✅ |
 | 4 | `AI1234_SHADOW_*` | **L** | log | **L** | log | A | ✅ |
 | 5 | `AI12_SHADOW_*` | **L** | log | — | — | A | ✅ |
-| 6 | **`AI123_LIVE_*`** | **L** | — | **L** | — | **C** | ⬜ · **needs INF-GATE** |
+| 6 | **`AI123_LIVE_*`** | **L** | — | **L** | — | **C** | ⬜ · **INF-GATE PASS** |
 | 7 | `AI1234_SIZING_LIVE_*` | **L** | **L** | **L** | log | **C** | ✅ Tester |
 | 8 | **`AI1234_LIVE_*`** | **L** | **L** | **L** | **L** | **C** | ⬜ last |
 
@@ -448,14 +449,15 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 1. Complete INF-0…INF-7 tasks in suggested order (parallel where noted).  
 2. One row per task in `Diagnostics/INF-test-journal.csv`.  
 3. CI green · parity PASS · walk-forward PASS.  
-4. Declare **INF-GATE PASS** in `STATUS.md`.
+4. Declare **INF-GATE PASS** in `STATUS.md` (`make status`).
 
 ### 8.3 Track C — Chart LIVE (after INF-GATE)
 
 1. Confirm INF-GATE + AI Tester step PASS for target preset.  
-2. Attach **same preset** on demo chart · minimum size.  
-3. Run ≥2 weeks or P3-004 protocol · journal slippage vs Tester.  
-4. Promote next preset step only after stable.
+2. Confirm preset is listed in `models/manifest.json` · `bundle_id` matches compiled EA (`build_bundle.py --verify`).  
+3. Attach **same preset** on demo chart · minimum size.  
+4. Run ≥2 weeks or P3-004 protocol · journal slippage vs Tester.  
+5. Promote next preset step only after stable.
 
 ### 8.4 Reference metrics
 
@@ -472,7 +474,9 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 | Path | Purpose | Phase |
 |------|---------|-------|
 | `Include/ORBVWAP/Ai*.mqh` | Compiled AI rules | AI-* |
-| `models/manifest.json` | Model versions | AI-* / INF-6 |
+| `models/manifest.json` | Deployment bundle registry | INF-6 |
+| `scripts/build_bundle.py` | Build / verify bundle | INF-6 |
+| `schemas/bundle.v1.json` | Bundle contract | INF-6 |
 | `schemas/decisions.v1.json` | Data contract | INF-0 |
 | `Diagnostics/ai/*.py` | Train, replay, simulate | AI-* |
 | `Diagnostics/ai/simulate_ai2.py` | Sizing stack sim | AI-2 |
@@ -480,6 +484,10 @@ INF-8  (optional) v2 IPC when retrain cadence needs runtime models
 | `Diagnostics/INF-test-journal.csv` | Infra sign-off | INF-* |
 | `Diagnostics/logs/*.jsonl` | Structured replay logs | INF-2 |
 | `tests/golden/*.json` | CI snapshots | INF-3 |
+| `Include/ORBVWAP/AiFeatures.mqh` | Shared AI-1 feature vector | INF-4 |
+| `Diagnostics/ai/features.py` · `parity_check.py` | Py ↔ export parity | INF-4 |
+| `Diagnostics/datasets/feature_parity_sample.parquet` | Dual-column audit sample | INF-4 |
+| `Diagnostics/ai/walkforward.py` | 3-fold walk-forward gate | INF-5 |
 | `ORBVWAP_ai_shadow.csv` | AI decision audit | INF-1 |
 | `AGENTS.md` · `STATUS.md` | Ops / agent handoff | INF-7 |
 | `Presets/` · `Profiles/Tester/` | Wiring | AI-* |

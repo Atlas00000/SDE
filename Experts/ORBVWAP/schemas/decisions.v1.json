@@ -50,7 +50,17 @@
     {"name": "prod_executed", "dtype": "int64", "required": true, "values": [0, 1]},
     {"name": "reject_stage", "dtype": "string", "required": true, "nullable_empty": true, "values": ["", "CAN_TRADE", "SETUP"]},
     {"name": "reject_code", "dtype": "string", "required": true, "nullable_empty": true},
-    {"name": "position_id", "dtype": "int64", "required": true, "min": 0}
+    {"name": "position_id", "dtype": "int64", "required": true, "min": 0},
+    {"name": "feat_range_width_atr", "dtype": "float64", "required": false, "note": "INF-4 optional when InpEnableFeatureParityExport"},
+    {"name": "feat_vol_ratio", "dtype": "float64", "required": false},
+    {"name": "feat_vwap_dist_atr", "dtype": "float64", "required": false},
+    {"name": "feat_spread_pct_range", "dtype": "float64", "required": false},
+    {"name": "feat_min_rr", "dtype": "float64", "required": false},
+    {"name": "feat_hour_gmt", "dtype": "float64", "required": false},
+    {"name": "feat_weekday", "dtype": "float64", "required": false},
+    {"name": "feat_ny_min_since_open", "dtype": "float64", "required": false},
+    {"name": "feat_session_ny", "dtype": "float64", "required": false},
+    {"name": "feat_direction_sell", "dtype": "float64", "required": false}
   ],
   "row_rules": [
     {

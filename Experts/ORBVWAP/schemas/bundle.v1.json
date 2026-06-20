@@ -1,0 +1,25 @@
+{
+  "$schema": "orbvwap-contract/v1",
+  "artifact": "bundle_manifest",
+  "version": 1,
+  "source_file": "models/manifest.json",
+  "producer": "scripts/build_bundle.py",
+  "required_fields": [
+    "schema_version",
+    "bundle_id",
+    "project",
+    "ea_version",
+    "git_sha",
+    "built_at",
+    "prod_preset",
+    "presets",
+    "artifacts",
+    "models"
+  ],
+  "presets_entry": {
+    "name": "string .set filename under Presets/",
+    "step": "integer sign-off ladder step",
+    "role": "baseline | export | tester_shadow | tester_live | chart_live"
+  },
+  "gate": "ORBVWAP_BUNDLE_ID in Constants.mqh must equal bundle_id; chart LIVE preset must be listed in presets[]"
+}

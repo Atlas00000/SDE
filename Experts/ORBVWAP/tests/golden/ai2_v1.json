@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "AI-2-002",
+  "replay_script": "replay_sizing.py",
+  "verdict": "PASS",
+  "n_full": 98,
+  "pf_full": 1.47,
+  "n_holdout": 98,
+  "pf_holdout": 1.47,
+  "holdout_cut": "2023-11-20 14:44:00",
+  "notes": "ai1+ai2 payoff=1.20 net=12.79",
+  "tolerances": {
+    "pf_holdout": 0.05,
+    "pf_full": 0.05,
+    "n_holdout": 0,
+    "n_full": 0
+  }
+}

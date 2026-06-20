@@ -7,6 +7,7 @@ COPY requirements-lock.txt pyproject.toml ./
 COPY Diagnostics ./Diagnostics
 COPY models ./models
 COPY Include ./Include
+COPY tests ./tests
 
 RUN pip install --no-cache-dir --default-timeout=300 --retries=5 \
     -r requirements-lock.txt

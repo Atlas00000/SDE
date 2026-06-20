@@ -81,6 +81,7 @@ input double InpEqTrailPct          = 0.0;   // P2D-004: 0=off, halt if equity d
 
 input group "=== AI export (AI-0) ==="
 input bool   InpEnableDecisionExport = false;  // AI-0: write ORBVWAP_decisions.csv + outcomes
+input bool   InpEnableFeatureParityExport = false; // INF-4: append feat_* columns to decisions CSV
 input bool   InpEnableAiShadowLog    = false;  // INF-1: write ORBVWAP_ai_shadow.csv
 
 input group "=== AI Layer 1 (AI-1) ==="

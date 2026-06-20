@@ -119,6 +119,76 @@ docker compose run replay-all
 
 Expectations: `Diagnostics/ai/replay_expectations.json` · copy `.env.example` → `.env` for MT5 paths.
 
+## 3a. Golden replay CI — INF-3
+
+Committed snapshots in `tests/golden/` lock holdout metrics for AI-0/2/3/4 replay gates.
+
+```bash
+# Compare live replay vs golden (same dataset + locked deps)
+python Diagnostics/ai/golden_replay.py
+make test-golden
+
+# Intentional metric bump only (then commit JSON + journal note)
+python Diagnostics/ai/golden_replay.py --update-golden
+make update-golden
+```
+
+CI: `.github/workflows/orbvwap-ai-replay.yml` runs `replay_all.py` + golden/parity pytest on ORBVWAP changes.
+
+## 3b. Feature parity — INF-4
+
+Shared MQL5 feature vector: `Include/ORBVWAP/AiFeatures.mqh` (used by `DecisionExport` + `AiScorer`).
+
+```bash
+python Diagnostics/ai/parity_check.py --all-rows
+python Diagnostics/ai/export_feature_sample.py
+make parity-check
+
+# Optional: append feat_* columns on next AI-0 export
+# InpEnableFeatureParityExport=true in preset
+```
+
+Gate: all AI-1 `FEATURE_ORDER` columns · max |Δ| &lt; 1e-4 on executed dataset rows.
+
+## 3c. Walk-forward — INF-5
+
+3 expanding train / next-segment OOS windows on **AI-3 + AI-1 + AI-2** deploy stack.
+
+```bash
+python Diagnostics/ai/walkforward.py
+make walkforward
+
+# Append INF-test-journal rows (WF-1..3 + INF-5-006 gate)
+python Diagnostics/ai/walkforward.py --write-journal
+```
+
+Pass rule: each OOS window · stack PF ≥ PROD × **0.95** (retrain AI-1 + recalibrate AI-2 per fold).
+
+## 3d. Deployment bundle — INF-6
+
+Single deploy unit: `models/manifest.json` + compile-time `ORBVWAP_BUNDLE_ID`.
+
+```bash
+python scripts/build_bundle.py              # refresh manifest (git sha, presets, artifacts)
+python scripts/build_bundle.py --verify     # gate: manifest ↔ Constants.mqh ↔ files
+make verify-bundle
+
+# Bump bundle after retrain / preset promotion
+python scripts/build_bundle.py --bundle-id orbvwap-v1.24-ai1234
+```
+
+Chart LIVE rule: use only presets listed in `manifest.presets[]` with `role=chart_live`; Experts log + `ORBVWAP_ai_shadow.csv` must show the same `bundle_id`.
+
+## 3e. Ops dashboard — INF-7
+
+```bash
+make status
+python scripts/status.py
+python scripts/status.py --write    # refresh STATUS.md
+```
+
+Live gate table: [STATUS.md](../STATUS.md) · agent map: [AGENTS.md](../AGENTS.md).
+
 Output: `Diagnostics/datasets/ORBVWAP_ai_dataset_v1.parquet`
 
 ## 3. Baseline replay — AI-0 ✅

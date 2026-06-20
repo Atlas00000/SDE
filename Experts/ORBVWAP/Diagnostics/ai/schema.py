@@ -65,18 +65,25 @@ def load_contract(name: str, version: int = 1) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _required_columns(contract: dict[str, Any]) -> list[str]:
+    return [col["name"] for col in contract["columns"] if col.get("required", True)]
+
+
 def _expected_columns(contract: dict[str, Any]) -> list[str]:
     return [col["name"] for col in contract["columns"]]
 
 
 def _check_required_columns(df: pd.DataFrame, contract: dict[str, Any], result: ValidationResult) -> None:
+    required = _required_columns(contract)
     expected = _expected_columns(contract)
-    missing = [c for c in expected if c not in df.columns]
+    missing = [c for c in required if c not in df.columns]
     extra = [c for c in df.columns if c not in expected]
+    optional_prefixes = ("feat_",)
+    unexpected = [c for c in extra if not c.startswith(optional_prefixes)]
     if missing:
         result.add(f"missing columns: {', '.join(missing)}")
-    if extra:
-        result.add(f"unexpected columns: {', '.join(extra)}")
+    if unexpected:
+        result.add(f"unexpected columns: {', '.join(unexpected)}")
 
 
 def _coerce_flag(series: pd.Series) -> pd.Series:
@@ -130,6 +137,8 @@ def validate_decisions(df: pd.DataFrame, *, version: int = 1) -> ValidationResul
 
     for spec in contract["columns"]:
         col = spec["name"]
+        if col not in work.columns:
+            continue
         if col == "bar_time_gmt":
             continue
         if spec["dtype"] == "enum":

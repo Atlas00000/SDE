@@ -1,0 +1,58 @@
+name: ORBVWAP AI Golden Replay
+
+on:
+  push:
+    paths:
+      - "Experts/ORBVWAP/**"
+      - ".github/workflows/orbvwap-ai-replay.yml"
+  pull_request:
+    paths:
+      - "Experts/ORBVWAP/**"
+      - ".github/workflows/orbvwap-ai-replay.yml"
+
+jobs:
+  golden-replay:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Experts/ORBVWAP
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: Experts/ORBVWAP/requirements-lock.txt
+
+      - name: Install locked deps + pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-lock.txt pytest
+
+      - name: INF-2 replay-all smoke
+        run: python Diagnostics/ai/replay_all.py
+
+      - name: INF-3 golden replay pytest
+        run: python -m pytest tests/test_replay_golden.py -v
+
+      - name: INF-4 feature parity
+        run: |
+          python Diagnostics/ai/parity_check.py --all-rows
+          python -m pytest tests/test_feature_parity.py -v
+
+      - name: INF-5 walk-forward
+        run: |
+          python Diagnostics/ai/walkforward.py
+          python -m pytest tests/test_walkforward.py -v
+
+      - name: INF-6 deployment bundle
+        run: |
+          python scripts/build_bundle.py --verify
+          python -m pytest tests/test_bundle.py -v
+
+      - name: INF-7 status dashboard
+        run: |
+          python scripts/status.py
+          python -m pytest tests/test_status.py -v

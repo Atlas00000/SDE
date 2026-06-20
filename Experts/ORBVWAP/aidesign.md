@@ -5,6 +5,8 @@
 **AI status:** Offline training **CLOSED** (2026-06-11) · MT5 validation **partial** · LIVE promotion **pending**  
 **References:** [System Design.md](./System%20Design.md) · [ailayers.md](./ailayers.md) · [System Profile.md](./System%20Profile.md) · [Edge Discovery.md](./Edge%20Discovery.md)
 
+> **Doc ownership:** This file owns **AI model design and training gates**. Wiring / INF pipeline → [System Design.md](./System%20Design.md). PROD edge metrics → [System Profile.md](./System%20Profile.md). Agent commands → [AGENTS.md](./AGENTS.md).
+
 **Chart LIVE:** Blocked until **INF-GATE PASS** — see [System Design.md §6](./System%20Design.md#6-infrastructure-phases-inf-).
 
 ---
