@@ -204,6 +204,7 @@ make status           # refresh STATUS.md
 
 | Doc | Read when you want… |
 |-----|---------------------|
+| [Multi_Symbols_Guide.md](./Multi_Symbols_Guide.md) | Portfolio expansion, symbol tiers, correlation |
 | [README.md](./README.md) | Overview, quick start, preset ladder |
 | [STATUS.md](./STATUS.md) | Current gate verdicts |
 | [System Design.md](./System%20Design.md) | INF phases, sign-off wiring, architecture |
