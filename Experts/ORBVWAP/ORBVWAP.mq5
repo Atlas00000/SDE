@@ -23,6 +23,7 @@
 #include "Include/ORBVWAP/DecisionExport.mqh"
 #include "Include/ORBVWAP/AiShadowExport.mqh"
 #include "Include/ORBVWAP/AiScorer.mqh"
+#include "Include/ORBVWAP/AiRuntime.mqh"
 #include "Include/ORBVWAP/AiSizer.mqh"
 #include "Include/ORBVWAP/AiRegime.mqh"
 #include "Include/ORBVWAP/PathTracker.mqh"
@@ -194,8 +195,8 @@ void ProcessPipeline()
    const bool ai_active = (InpAiGateMode != ORBVWAP_AI_OFF || InpAiSizeMode != ORBVWAP_AI_SIZE_OFF);
    if(setup_ok && ai_active)
      {
-      ai_score = CAiScorer::Score(_Symbol, g_session, signal_result.signal,
-                                  g_opening_range, g_session_vwap, g_indicators, setup);
+      ai_score = CAiRuntime::ScoreAi1(_Symbol, g_session, signal_result.signal,
+                                      g_opening_range, g_session_vwap, g_indicators, setup);
       const double min_score = (InpAiMinScore > 0.0) ? InpAiMinScore : CAiScorer::MinScore();
       const bool   pass      = (ai_score >= min_score);
       ai1_pass = pass ? 1 : 0;
@@ -283,6 +284,17 @@ int OnInit()
    COrbVwapLogger::Info(StringFormat("bundle_id=%s ea_version=%s",
                                      ORBVWAP_BUNDLE_ID,
                                      ORBVWAP_EA_VERSION));
+   if(!CAiRuntime::InitOnStart())
+      COrbVwapLogger::Warn("AI runtime init incomplete");
+   if(CAiRuntime::UsesExternalRuntime())
+     {
+      const string mode = (MQLInfoInteger(MQL_TESTER) ? "sidecar"
+                          : (InpAiInferenceEnable ? "http" : "sidecar"));
+      COrbVwapLogger::Info(StringFormat("AI1 runtime=%s sidecar=%s http=%s",
+                                        mode,
+                                        InpAi1SidecarEnable ? "on" : "off",
+                                        InpAiInferenceEnable ? "on" : "off"));
+     }
    return(INIT_SUCCEEDED);
   }
 

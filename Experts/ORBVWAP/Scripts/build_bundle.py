@@ -30,6 +30,8 @@ DEFAULT_PRESETS = [
     {"name": "ORBVWAP_AI123_LIVE_PROD_EURUSD-M1.set", "step": 6, "role": "chart_live"},
     {"name": "ORBVWAP_AI1234_SIZING_LIVE_PROD_EURUSD-M1.set", "step": 7, "role": "tester_live"},
     {"name": "ORBVWAP_AI1234_LIVE_PROD_EURUSD-M1.set", "step": 8, "role": "chart_live"},
+    {"name": "ORBVWAP_AI1_SIDECAR_SHADOW_PROD_EURUSD-M1.set", "step": None, "role": "runtime_sidecar"},
+    {"name": "ORBVWAP_AI1_HTTP_SHADOW_PROD_EURUSD-M1.set", "step": None, "role": "runtime_http"},
 ]
 
 MQH_ARTIFACTS = [
@@ -38,6 +40,9 @@ MQH_ARTIFACTS = [
     "Include/ORBVWAP/AiSizer.mqh",
     "Include/ORBVWAP/AiRegime.mqh",
     "Include/ORBVWAP/AiExit.mqh",
+    "Include/ORBVWAP/Ai1Sidecar.mqh",
+    "Include/ORBVWAP/AiInferenceClient.mqh",
+    "Include/ORBVWAP/AiRuntime.mqh",
 ]
 
 MODEL_ARTIFACTS = [

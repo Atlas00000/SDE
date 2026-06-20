@@ -21,12 +21,14 @@
 
 **After retrain:** `train_*.py` → recompile EA → reload preset.
 
-### v2 IPC (future · not in ORBVWAP v1 yet)
+### v2 runtime IPC (INF-8 · optional)
 
-- **Tester:** `FILE_COMMON` sidecars in `Terminal\Common\Files\Logs\` · start sidecars **before** test · `req != last_req`
-- **Live:** HTTP inference preset · **not** HTTP in Tester
-- **Fail-open:** neutral scores + timeout log = AI inactive (rules-only trades)
-- **Never:** health probe mid-backtest · agent `MQL5/Files/` for IPC
+Presets: `AI1_SIDECAR_SHADOW` (Tester) · `AI1_HTTP_SHADOW` (live chart). Full runbook: [INF-8-runbook.md](./INF-8-runbook.md).
+
+- **Tester:** `FILE_COMMON` sidecar · `python Scripts/ai1_sidecar.py --mode tester` **before** Start
+- **Live:** HTTP `:8766` · `python Scripts/ai_inference_server.py` · allow URL in MT5
+- **Fail-open:** `ai1_score=0.5` on timeout · audit via `audit_shadow.py` (same as INF-1)
+- **Default v1:** compiled `AiScorer.mqh` (no sidecar/HTTP)
 
 ---
 

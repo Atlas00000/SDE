@@ -28,6 +28,10 @@ INF_GATES: list[tuple[str, str, str]] = [
     ("INF-7", "Ops dashboard", "INF-7-006"),
 ]
 
+INF_OPTIONAL: list[tuple[str, str, str]] = [
+    ("INF-8", "Runtime IPC (v2)", "INF-8-006"),
+]
+
 AI_TESTER_GATES: list[tuple[str, str, str]] = [
     ("AI-3", "AI123_SHADOW Tester", "AI-123-005"),
     ("AI-4", "AI1234_SHADOW Tester", "AI-1234-005"),
@@ -91,6 +95,14 @@ def build_inf_table(inf_latest: dict[str, pd.Series]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def build_inf_optional_table(inf_latest: dict[str, pd.Series]) -> pd.DataFrame:
+    rows = []
+    for phase, label, task_id in INF_OPTIONAL:
+        verdict, note = gate_status(inf_latest, task_id)
+        rows.append({"track": "INF", "id": phase, "gate": label, "task_id": task_id, "verdict": verdict, "notes": note})
+    return pd.DataFrame(rows)
+
+
 def build_ai_table(ai_latest: dict[str, pd.Series]) -> pd.DataFrame:
     rows = []
     for step, label, task_id in AI_TESTER_GATES:
@@ -124,6 +136,7 @@ def ai_tester_pass(ai_table: pd.DataFrame) -> bool:
 
 def render_markdown(
     inf_table: pd.DataFrame,
+    inf_optional: pd.DataFrame,
     ai_table: pd.DataFrame,
     preset_table: pd.DataFrame,
     manifest: dict,
@@ -159,6 +172,21 @@ def render_markdown(
         lines.append(
             f"| {row['id']} | {row['gate']} | `{row['task_id']}` | **{row['verdict']}** | {row['notes']} |"
         )
+
+    if not inf_optional.empty:
+        lines.extend(
+            [
+                "",
+                "## Optional — runtime IPC (INF-8 · does not block chart LIVE v1)",
+                "",
+                "| Phase | Gate | Task | Verdict | Notes |",
+                "|-------|------|------|---------|-------|",
+            ]
+        )
+        for _, row in inf_optional.iterrows():
+            lines.append(
+                f"| {row['id']} | {row['gate']} | `{row['task_id']}` | **{row['verdict']}** | {row['notes']} |"
+            )
 
     lines.extend(
         [
@@ -200,6 +228,7 @@ def render_markdown(
             "make parity-check    # INF-4",
             "make walkforward     # INF-5",
             "python Scripts/build_bundle.py --verify   # INF-6",
+            "make test-ipc        # INF-8 (optional)",
             "```",
             "",
             "See [AGENTS.md](./AGENTS.md) for full repo map.",
@@ -245,6 +274,7 @@ def main() -> int:
     manifest = load_manifest()
 
     inf_table = build_inf_table(inf_latest)
+    inf_optional = build_inf_optional_table(inf_latest)
     ai_table = build_ai_table(ai_latest)
     preset_table = build_preset_table(ai_latest)
 
@@ -254,6 +284,7 @@ def main() -> int:
         generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         md = render_markdown(
             inf_table,
+            inf_optional,
             ai_table,
             preset_table,
             manifest,

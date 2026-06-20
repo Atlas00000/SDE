@@ -35,7 +35,7 @@ ORBVWAP/
     ai/                       # Offline train + replay + gates
     datasets/                 # ORBVWAP_ai_dataset_v1.parquet
   tests/                      # pytest (golden, parity, walk-forward, bundle)
-  Scripts/                    # build_bundle.py, status.py (also scripts/ on Windows)
+  Scripts/                    # build_bundle.py, status.py, ai1_sidecar.py (INF-8)
   Makefile                    # Local gate shortcuts
   docker/                     # Reproducible replay image (INF-2)
 ```
@@ -63,7 +63,25 @@ make update-golden      # bump golden JSON (intentional only)
 make parity-check       # INF-4 feature parity
 make walkforward        # INF-5 3-fold gate
 make status             # INF-7 print + write STATUS.md
+make test-ipc           # INF-8 IPC + runtime pytest
 make docker-replay      # INF-2 in container
+```
+
+---
+
+## INF-8 runtime IPC (optional · v2)
+
+See [Diagnostics/ai/INF-8-runbook.md](./Diagnostics/ai/INF-8-runbook.md).
+
+```bash
+# Strategy Tester — start BEFORE pressing Start
+python Scripts/ai1_sidecar.py --mode tester
+python Scripts/ai_sidecar_health.py --mode tester
+
+# Live / demo chart — allow http://127.0.0.1:8766 in MT5 WebRequest list
+python Scripts/ai_inference_server.py
+
+make test-ipc
 ```
 
 ---

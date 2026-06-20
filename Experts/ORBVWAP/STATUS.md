@@ -1,6 +1,6 @@
 # ORBVWAP STATUS
 
-**Generated:** 2026-06-20 00:31 UTC · `python Scripts/status.py --write`
+**Generated:** 2026-06-20 00:40 UTC · `python Scripts/status.py --write`
 
 ## INF-GATE: **PASS**
 
@@ -24,6 +24,12 @@ Chart LIVE (preset steps 6 & 8) requires INF-GATE **PASS** + demo sign-off.
 | INF-5 | Walk-forward gate | `INF-5-006` | **PASS** | AI-3+AI-1+AI-2 stack; no OOS window PF < PROD*0. |
 | INF-6 | Deployment bundle | `INF-6-006` | **PASS** | git b9f3328; 9 presets; EA OnInit logs bundle_id |
 | INF-7 | Ops dashboard | `INF-7-006` | **PASS** | INF-GATE PASS; AI+INF table from journals; doc o |
+
+## Optional — runtime IPC (INF-8 · does not block chart LIVE v1)
+
+| Phase | Gate | Task | Verdict | Notes |
+|-------|------|------|---------|-------|
+| INF-8 | Runtime IPC (v2) | `INF-8-006` | **PASS** | IPC 116-byte ORI1 block; HTTP :8766; presets SID |
 
 ## AI Tester gates (Track A minimum)
 
@@ -56,6 +62,7 @@ make test-golden     # INF-3
 make parity-check    # INF-4
 make walkforward     # INF-5
 python Scripts/build_bundle.py --verify   # INF-6
+make test-ipc        # INF-8 (optional)
 ```
 
 See [AGENTS.md](./AGENTS.md) for full repo map.

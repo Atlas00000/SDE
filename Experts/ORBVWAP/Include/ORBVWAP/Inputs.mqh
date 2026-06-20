@@ -88,6 +88,14 @@ input group "=== AI Layer 1 (AI-1) ==="
 input ENUM_ORBVWAP_AI_GATE_MODE InpAiGateMode = ORBVWAP_AI_OFF; // OFF / SHADOW (log) / LIVE (block)
 input double InpAiMinScore       = 0.0;      // Min score to take; 0 = use model tau (protection mode)
 
+input group "=== AI runtime IPC (INF-8) ==="
+input bool   InpAi1SidecarEnable      = false; // Tester: FILE_COMMON sidecar (start Python first)
+input string InpAi1SidecarFile        = "Logs\\ORBVWAP_ai1_sidecar.bin";
+input int    InpAi1SidecarTimeoutMs   = 5000;
+input bool   InpAiInferenceEnable     = false; // Live chart: HTTP server (not Tester)
+input string InpAiInferenceBaseUrl    = "http://127.0.0.1:8766";
+input int    InpAiInferenceTimeoutMs  = 3000;
+
 input group "=== AI Layer 2 (AI-2) ==="
 input ENUM_ORBVWAP_AI_SIZE_MODE InpAiSizeMode = ORBVWAP_AI_SIZE_OFF; // OFF / SHADOW (log) / LIVE (scale lot)
 

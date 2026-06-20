@@ -2,7 +2,7 @@
 PYTHON ?= python
 AI_DIR := Diagnostics/ai
 
-.PHONY: install replay-all test-golden update-golden parity-check export-feature-sample walkforward build-bundle verify-bundle status train-all simulate-ai2 validate-schema audit-shadow docker-replay
+.PHONY: install replay-all test-golden update-golden parity-check export-feature-sample walkforward build-bundle verify-bundle status train-all simulate-ai2 validate-schema audit-shadow docker-replay test-ipc sidecar-health
 
 install:
 	$(PYTHON) -m pip install -r requirements-lock.txt
@@ -49,6 +49,12 @@ validate-schema:
 audit-shadow:
 	@test -n "$(SHADOW_CSV)" || (echo "Set SHADOW_CSV=path/to/ORBVWAP_ai_shadow.csv" && exit 1)
 	$(PYTHON) $(AI_DIR)/audit_shadow.py "$(SHADOW_CSV)" --check-ai2
+
+test-ipc:
+	$(PYTHON) -m pytest tests/test_ai1_ipc.py -v
+
+sidecar-health:
+	$(PYTHON) Scripts/ai_sidecar_health.py --mode tester
 
 docker-replay:
 	docker build -f docker/Dockerfile -t orbvwap-ai .

@@ -13,3 +13,4 @@ INF-5-WF-3,walkforward.py AI312 stack,ORBVWAP_ai_dataset_v1.parquet,2024-03-28 0
 INF-5-006,walkforward.py gate,3 folds pf_floor=0.95,rolling,269,0.83,226,1.18,PASS,AI-3+AI-1+AI-2 stack; no OOS window PF < PROD*0.95
 INF-6-006,build_bundle.py --verify,manifest.json bundle_id=orbvwap-v1.23-ai1234,full,9,1.23,9,1.23,PASS,git b9f3328; 9 presets; EA OnInit logs bundle_id; ai_shadow.csv carries same id
 INF-7-006,status.py --write,AGENTS.md STATUS.md gate dashboard,full,8,PASS,8,PASS,PASS,INF-GATE PASS; AI+INF table from journals; doc ownership INF-7-004; make status
+INF-8-006,test_ai1_ipc.py + ai1_sidecar.py,INF-8-runbook.md Ai1Sidecar AiInferenceClient,full,4,PASS,4,PASS,PASS,IPC 116-byte ORI1 block; HTTP :8766; presets SIDECAR+HTTP SHADOW; fail-open 0.5; pytest gate

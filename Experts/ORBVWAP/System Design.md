@@ -347,10 +347,10 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
-| **INF-8-001** | Port VWAPMRE `FILE_COMMON` sidecar pattern | `Ai*Sidecar.mqh` | ⬜ |
-| **INF-8-002** | HTTP inference server + live preset | Python server | ⬜ |
-| **INF-8-003** | Tester LogOnly preset + sidecar startup doc | Runbook | ⬜ |
-| **INF-8-004** | Fail-open audit same as INF-1 | Shadow/neutral check | ⬜ |
+| **INF-8-001** | Port VWAPMRE `FILE_COMMON` sidecar pattern | `Ai1Sidecar.mqh` | ✅ |
+| **INF-8-002** | HTTP inference server + live preset | Python server | ✅ |
+| **INF-8-003** | Tester LogOnly preset + sidecar startup doc | Runbook | ✅ |
+| **INF-8-004** | Fail-open audit same as INF-1 | Shadow/neutral check | ✅ |
 
 **Gate:** Tester mixed scores via sidecars · live mixed scores via HTTP · no neutral-only runs.
 

@@ -54,6 +54,16 @@
       "name": "ORBVWAP_AI1234_LIVE_PROD_EURUSD-M1.set",
       "step": 8,
       "role": "chart_live"
+    },
+    {
+      "name": "ORBVWAP_AI1_SIDECAR_SHADOW_PROD_EURUSD-M1.set",
+      "step": null,
+      "role": "runtime_sidecar"
+    },
+    {
+      "name": "ORBVWAP_AI1_HTTP_SHADOW_PROD_EURUSD-M1.set",
+      "step": null,
+      "role": "runtime_http"
     }
   ],
   "artifacts": {
@@ -62,7 +72,10 @@
       "Include/ORBVWAP/AiScorer.mqh",
       "Include/ORBVWAP/AiSizer.mqh",
       "Include/ORBVWAP/AiRegime.mqh",
-      "Include/ORBVWAP/AiExit.mqh"
+      "Include/ORBVWAP/AiExit.mqh",
+      "Include/ORBVWAP/Ai1Sidecar.mqh",
+      "Include/ORBVWAP/AiInferenceClient.mqh",
+      "Include/ORBVWAP/AiRuntime.mqh"
     ],
     "models": [
       "models/ai1_v1.json",
