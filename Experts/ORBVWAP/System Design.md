@@ -1,11 +1,11 @@
 # ORBVWAP — System Design
 
 **Document:** `System Design.md`  
-**EA version:** 1.22 · **Production:** PROD v3 (frozen signal/exit geometry)  
+**EA version:** 1.23 · **Production:** PROD v3 (frozen signal/exit geometry)  
 **AI models:** Offline training **CLOSED** (AI-0…AI-4) · see [ailayers.md](./ailayers.md)  
-**Infra pipeline:** **INF-0–7** ✅ · **INF-GATE PASS** · chart LIVE steps 6 & 8 unlocked (demo sign-off still required)
+**Infra pipeline:** **INF-0–8** ✅ · **INF-GATE PASS** · chart LIVE steps 6 & 8 unlocked (demo sign-off still required)
 
-> **Doc ownership:** Wiring / INF / preset ladder → this file. AI models → [aidesign.md](./aidesign.md). PROD edge → [System Profile.md](./System%20Profile.md). Ops → [AGENTS.md](./AGENTS.md) · [STATUS.md](./STATUS.md).
+> **Start here:** [README.md](./README.md) · **Doc ownership:** Wiring / INF / preset ladder → this file. AI models → [aidesign.md](./aidesign.md). PROD edge → [System Profile.md](./System%20Profile.md). Ops → [AGENTS.md](./AGENTS.md) · [STATUS.md](./STATUS.md).
 
 ---
 
@@ -142,16 +142,16 @@ Python train/replay  →  auto-gen .mqh + manifest.json
 | **Chart LIVE** | Demo / small live | Same preset as Tester | **INF-GATE** + Tester PASS |
 | **Forward** | P3-004 | 4-week real slippage | After chart LIVE stable |
 
-### 4.2 v2 (planned) — runtime inference · **INF-8**
+### 4.2 v2 — runtime inference · **INF-8**
 
-When ORBVWAP adds HTTP / file IPC (VWAPMRE pattern):
+Live chart can run the **full AI-1..AI-4 stack from Python** (same layers as `AI1234_LIVE`) without recompiling `.mqh` after retrain:
 
 | Environment | Preset | Transport | Before run |
 |-------------|--------|-----------|------------|
-| **Strategy Tester** | Gates / LogOnly + sidecars ON | `FILE_COMMON` binary IPC | Sidecars `--mode tester` before Start |
-| **Live / demo** | HTTP inference preset | `WebRequest` → local server | Inference server + URL allowlist |
+| **Strategy Tester** | `AI1_SIDECAR_SHADOW` (AI-1 only) | `FILE_COMMON` binary IPC | Sidecar `--mode tester` before Start |
+| **Live / demo** | **`AI1234_HTTP_LIVE`** | `WebRequest` → `:8766` | `ai_inference_server.py` + URL allowlist |
 
-**Shared path:** `%APPDATA%\MetaQuotes\Terminal\Common\Files\Logs\`
+Retrain = update `models/*.json` + restart Python server. EA recompile only when MQL wiring changes, not per model export.
 
 ---
 
@@ -195,7 +195,7 @@ Industry-aligned hardening **before chart LIVE**. One Task ID → one experiment
 | **INF-5** | Walk-forward automation | Pre-LIVE statistics | Replace manual 3-fold rule |
 | **INF-6** | Deployment manifest bundle | Traceability | `bundle_id` = deploy unit |
 | **INF-7** | Agent / ops ergonomics | `AGENTS.md`, `STATUS.md` | Faster human + AI handoff |
-| **INF-8** | v2 runtime IPC *(optional)* | HTTP live + sidecar Tester | Dynamic models without recompile |
+| **INF-8** | v2 runtime IPC *(optional)* | HTTP full stack + sidecar Tester | Dynamic models without recompile |
 
 ### 6.2 INF-GATE (blocks chart LIVE)
 
@@ -212,7 +212,7 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 | INF-6 manifest `bundle_id` matches EA + presets | Manual review |
 | AI Tester sign-off | `AI-test-journal.csv` steps 3–5 minimum |
 
-**INF-8** not required for v1 `.mqh` chart LIVE — only for runtime inference track.
+**INF-8** not required for v1 `.mqh` chart LIVE — use **`AI1234_HTTP_LIVE`** when live chart should mirror `AI1234_LIVE` from Python without recompile.
 
 ---
 
@@ -341,18 +341,19 @@ All must PASS before preset steps **6–8** on a **live/demo chart**:
 
 ---
 
-### 6.11 INF-8 — v2 runtime IPC *(optional · after v1 chart LIVE)*
+### 6.11 INF-8 — v2 runtime IPC *(optional · full stack on live chart)*
 
-**Goal:** Dynamic inference without recompile per retrain.
+**Goal:** Full production AI stack (AI-1..AI-4) from Python on live/demo chart — dynamic inference without recompile per retrain.
 
 | Task ID | Task | Output | Status |
 |---------|------|--------|--------|
 | **INF-8-001** | Port VWAPMRE `FILE_COMMON` sidecar pattern | `Ai1Sidecar.mqh` | ✅ |
-| **INF-8-002** | HTTP inference server + live preset | Python server | ✅ |
+| **INF-8-002** | HTTP inference server + **`AI1234_HTTP_LIVE`** preset | `ai_stack_runtime.py` + `AiRuntime.mqh` | ✅ |
 | **INF-8-003** | Tester LogOnly preset + sidecar startup doc | Runbook | ✅ |
 | **INF-8-004** | Fail-open audit same as INF-1 | Shadow/neutral check | ✅ |
+| **INF-8-005** | Full-stack pytest gate | `test_stack_runtime.py` | ✅ |
 
-**Gate:** Tester mixed scores via sidecars · live mixed scores via HTTP · no neutral-only runs.
+**Gate:** `make test-ipc` (9 tests) · live mixed scores via HTTP full stack · no neutral-only runs (`INF-8-007`).
 
 ---
 
@@ -377,7 +378,7 @@ INF-7  AGENTS/STATUS    (ops)
   ↓
 INF-GATE PASS  →  chart LIVE allowed (AI preset steps 6–8)
   ↓
-INF-8  (optional) v2 IPC when retrain cadence needs runtime models
+INF-8  (optional) v2 IPC — live chart = AI1234_HTTP_LIVE (full stack from Python)
 ```
 
 **Parallel OK:** INF-7 docs anytime · MT5 Tester AI steps 3–5 while INF-0…3 in progress.

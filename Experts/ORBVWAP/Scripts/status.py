@@ -29,7 +29,7 @@ INF_GATES: list[tuple[str, str, str]] = [
 ]
 
 INF_OPTIONAL: list[tuple[str, str, str]] = [
-    ("INF-8", "Runtime IPC (v2)", "INF-8-006"),
+    ("INF-8", "Runtime IPC (v2)", "INF-8-007"),
 ]
 
 AI_TESTER_GATES: list[tuple[str, str, str]] = [
@@ -48,6 +48,7 @@ PRESET_LADDER: list[tuple[int, str, str, str | None]] = [
     (6, "AI123_LIVE_*", "C", None),
     (7, "AI1234_SIZING_LIVE_*", "C", "AI-1234-SIZING-006"),
     (8, "AI1234_LIVE_*", "C", None),
+    (8, "AI1234_HTTP_LIVE_*", "C", "INF-8-007"),
 ]
 
 
@@ -111,10 +112,17 @@ def build_ai_table(ai_latest: dict[str, pd.Series]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def build_preset_table(ai_latest: dict[str, pd.Series]) -> pd.DataFrame:
+def build_preset_table(
+    ai_latest: dict[str, pd.Series],
+    inf_latest: dict[str, pd.Series] | None = None,
+) -> pd.DataFrame:
+    inf_latest = inf_latest or {}
     rows = []
     for step, preset, track, journal_id in PRESET_LADDER:
-        if journal_id:
+        if journal_id and journal_id.startswith("INF-"):
+            verdict, _ = gate_status(inf_latest, journal_id)
+            status = "infra PASS · demo pending" if verdict == "PASS" else verdict
+        elif journal_id:
             verdict, _ = gate_status(ai_latest, journal_id)
             status = "PASS" if verdict == "PASS" else verdict
         elif track == "C":
@@ -276,7 +284,7 @@ def main() -> int:
     inf_table = build_inf_table(inf_latest)
     inf_optional = build_inf_optional_table(inf_latest)
     ai_table = build_ai_table(ai_latest)
-    preset_table = build_preset_table(ai_latest)
+    preset_table = build_preset_table(ai_latest, inf_latest)
 
     print_summary(inf_table, ai_table, manifest)
 

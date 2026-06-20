@@ -2,7 +2,7 @@
 
 Quick map for humans and coding agents working in this repo.
 
-**Live dashboard:** run `python Scripts/status.py --write` → [STATUS.md](./STATUS.md)
+**Start here:** [README.md](./README.md) · **Live dashboard:** [STATUS.md](./STATUS.md) (`make status`)
 
 ---
 
@@ -10,6 +10,7 @@ Quick map for humans and coding agents working in this repo.
 
 | Document | Owns | Do not duplicate here |
 |----------|------|------------------------|
+| **[README.md](./README.md)** | Human overview, quick start, preset ladder, run modes | INF task IDs, model math |
 | [System Design.md](./System%20Design.md) | Wiring, INF phases, preset ladder, INF-GATE | Model math, PROD metrics tables |
 | [aidesign.md](./aidesign.md) | AI layer design, training gates, ablation | INF pipeline steps |
 | [System Profile.md](./System%20Profile.md) | PROD v3 edge, frozen geometry, baseline metrics | AI preset wiring |
@@ -71,17 +72,17 @@ make docker-replay      # INF-2 in container
 
 ## INF-8 runtime IPC (optional · v2)
 
-See [Diagnostics/ai/INF-8-runbook.md](./Diagnostics/ai/INF-8-runbook.md).
+Live chart production path: preset **`AI1234_HTTP_LIVE`** = same layers as `AI1234_LIVE`, all scoring from Python. See [Diagnostics/ai/INF-8-runbook.md](./Diagnostics/ai/INF-8-runbook.md).
 
 ```bash
-# Strategy Tester — start BEFORE pressing Start
+# Strategy Tester — AI-1 sidecar only; start BEFORE pressing Start
 python Scripts/ai1_sidecar.py --mode tester
 python Scripts/ai_sidecar_health.py --mode tester
 
-# Live / demo chart — allow http://127.0.0.1:8766 in MT5 WebRequest list
+# Live / demo chart — full stack; allow http://127.0.0.1:8766 in MT5 WebRequest list
 python Scripts/ai_inference_server.py
 
-make test-ipc
+make test-ipc   # test_ai1_ipc + test_stack_runtime (9 tests)
 ```
 
 ---

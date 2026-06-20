@@ -51,7 +51,7 @@ audit-shadow:
 	$(PYTHON) $(AI_DIR)/audit_shadow.py "$(SHADOW_CSV)" --check-ai2
 
 test-ipc:
-	$(PYTHON) -m pytest tests/test_ai1_ipc.py -v
+	$(PYTHON) -m pytest tests/test_ai1_ipc.py tests/test_stack_runtime.py -v
 
 sidecar-health:
 	$(PYTHON) Scripts/ai_sidecar_health.py --mode tester

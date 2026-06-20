@@ -1,6 +1,6 @@
 # ORBVWAP STATUS
 
-**Generated:** 2026-06-20 00:40 UTC · `python Scripts/status.py --write`
+**Generated:** 2026-06-20 07:35 UTC · `python Scripts/status.py --write`
 
 ## INF-GATE: **PASS**
 
@@ -10,7 +10,7 @@ Chart LIVE (preset steps 6 & 8) requires INF-GATE **PASS** + demo sign-off.
 |-------|-------|
 | bundle_id | `orbvwap-v1.23-ai1234` |
 | ea_version | `1.23` |
-| git_sha | `b9f3328` |
+| git_sha | `e09b258` |
 
 ## Infra gates (Track B)
 
@@ -29,7 +29,7 @@ Chart LIVE (preset steps 6 & 8) requires INF-GATE **PASS** + demo sign-off.
 
 | Phase | Gate | Task | Verdict | Notes |
 |-------|------|------|---------|-------|
-| INF-8 | Runtime IPC (v2) | `INF-8-006` | **PASS** | IPC 116-byte ORI1 block; HTTP :8766; presets SID |
+| INF-8 | Runtime IPC (v2) | `INF-8-007` | **PASS** | AI-1..AI-4 from models/*.json; preset AI1234_HTT |
 
 ## AI Tester gates (Track A minimum)
 
@@ -52,6 +52,7 @@ Chart LIVE (preset steps 6 & 8) requires INF-GATE **PASS** + demo sign-off.
 | 6 | `AI123_LIVE_*` | C | BLOCKED | — |
 | 7 | `AI1234_SIZING_LIVE_*` | C | PASS | AI-1234-SIZING-006 |
 | 8 | `AI1234_LIVE_*` | C | BLOCKED | — |
+| 8 | `AI1234_HTTP_LIVE_*` | C | infra PASS · demo pending | INF-8-007 |
 
 ## Quick commands
 

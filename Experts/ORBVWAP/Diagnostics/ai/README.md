@@ -1,5 +1,7 @@
 # AI pipeline
 
+**Start here (overview):** [../README.md](../README.md) · **Gate dashboard:** [../STATUS.md](../STATUS.md)
+
 **Offline training:** ✅ **CLOSED** (2026-06-11) · all layers PASS in `Diagnostics/AI-test-journal.csv`  
 **Sign-off:** [aidesign.md §6.5](../aidesign.md#65-sign-off-wiring-chart--connection-rules) · [ailayers.md](../ailayers.md)
 
@@ -23,12 +25,12 @@
 
 ### v2 runtime IPC (INF-8 · optional)
 
-Presets: `AI1_SIDECAR_SHADOW` (Tester) · `AI1_HTTP_SHADOW` (live chart). Full runbook: [INF-8-runbook.md](./INF-8-runbook.md).
+Presets: `AI1_SIDECAR_SHADOW` (Tester · AI-1 only) · **`AI1234_HTTP_LIVE`** (live chart · full stack) · `AI1_HTTP_SHADOW` (legacy AI-1 HTTP). Full runbook: [INF-8-runbook.md](./INF-8-runbook.md).
 
 - **Tester:** `FILE_COMMON` sidecar · `python Scripts/ai1_sidecar.py --mode tester` **before** Start
-- **Live:** HTTP `:8766` · `python Scripts/ai_inference_server.py` · allow URL in MT5
-- **Fail-open:** `ai1_score=0.5` on timeout · audit via `audit_shadow.py` (same as INF-1)
-- **Default v1:** compiled `AiScorer.mqh` (no sidecar/HTTP)
+- **Live (production goal):** HTTP `:8766` · `python Scripts/ai_inference_server.py` · preset **`AI1234_HTTP_LIVE`** · allow URL in MT5
+- **Fail-open:** neutral scores on timeout · audit via `audit_shadow.py` (same as INF-1)
+- **Default v1:** compiled `.mqh` presets (recompile after retrain)
 
 ---
 

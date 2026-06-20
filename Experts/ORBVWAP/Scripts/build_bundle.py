@@ -32,6 +32,8 @@ DEFAULT_PRESETS = [
     {"name": "ORBVWAP_AI1234_LIVE_PROD_EURUSD-M1.set", "step": 8, "role": "chart_live"},
     {"name": "ORBVWAP_AI1_SIDECAR_SHADOW_PROD_EURUSD-M1.set", "step": None, "role": "runtime_sidecar"},
     {"name": "ORBVWAP_AI1_HTTP_SHADOW_PROD_EURUSD-M1.set", "step": None, "role": "runtime_http"},
+    {"name": "ORBVWAP_AI1234_HTTP_LIVE_PROD_EURUSD-M1.set", "step": 8, "role": "chart_live_runtime"},
+    {"name": "ORBVWAP_AI1234_HTTP_LIVE_PROD_EURUSD-M1.set", "step": 8, "role": "chart_live_runtime"},
 ]
 
 MQH_ARTIFACTS = [

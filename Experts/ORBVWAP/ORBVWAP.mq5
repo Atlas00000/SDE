@@ -145,9 +145,9 @@ void ProcessPipeline()
 
    if(!ai3_off)
      {
-      regime_ok = CAiRegime::AllowFromPipeline(_Symbol, g_session, g_opening_range,
-                                               g_session_vwap, g_indicators,
-                                               g_state.PriorSessionLoss());
+      regime_ok = CAiRuntime::RegimeAllow(_Symbol, g_session, g_opening_range,
+                                           g_session_vwap, g_indicators,
+                                           g_state.PriorSessionLoss());
       ai3_allow = regime_ok ? 1 : 0;
 
       if(InpAiRegimeMode == ORBVWAP_AI_REGIME_SHADOW)
@@ -219,7 +219,9 @@ void ProcessPipeline()
 
       if(!ai_blocked && pass && InpAiSizeMode != ORBVWAP_AI_SIZE_OFF)
         {
-         ai2_mult = CAiSizer::Multiplier(ai_score);
+         ai2_mult = CAiRuntime::SizeMultiplier(_Symbol, g_session, signal_result.signal,
+                                               g_opening_range, g_session_vwap, g_indicators,
+                                               setup, ai_score);
          if(InpAiSizeMode == ORBVWAP_AI_SIZE_SHADOW)
            {
             COrbVwapLogger::Info(StringFormat("AI2 shadow mult=%.2f score=%.3f lot=%.2f",
@@ -288,12 +290,12 @@ int OnInit()
       COrbVwapLogger::Warn("AI runtime init incomplete");
    if(CAiRuntime::UsesExternalRuntime())
      {
-      const string mode = (MQLInfoInteger(MQL_TESTER) ? "sidecar"
-                          : (InpAiInferenceEnable ? "http" : "sidecar"));
-      COrbVwapLogger::Info(StringFormat("AI1 runtime=%s sidecar=%s http=%s",
-                                        mode,
-                                        InpAi1SidecarEnable ? "on" : "off",
-                                        InpAiInferenceEnable ? "on" : "off"));
+      if(InpAiInferenceEnable && !MQLInfoInteger(MQL_TESTER))
+         COrbVwapLogger::Info("AI runtime=HTTP full stack (AI-1..AI-4 from Python)");
+      else
+         COrbVwapLogger::Info(StringFormat("AI runtime=sidecar sidecar=%s http=%s",
+                                           InpAi1SidecarEnable ? "on" : "off",
+                                           InpAiInferenceEnable ? "on" : "off"));
      }
    return(INIT_SUCCEEDED);
   }

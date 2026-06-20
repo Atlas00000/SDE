@@ -3,8 +3,8 @@
   "bundle_id": "orbvwap-v1.23-ai1234",
   "project": "ORBVWAP",
   "ea_version": "1.23",
-  "git_sha": "b9f3328",
-  "built_at": "2026-06-20T00:18:56Z",
+  "git_sha": "e09b258",
+  "built_at": "2026-06-20T01:05:24Z",
   "dataset_version": "ORBVWAP_ai_dataset_v1.parquet",
   "prod_preset": "ORBVWAP_PROD_EURUSD-M1.set",
   "deploy_path": "offline PASS -> MT5 shadow backtest -> chart LIVE (pinned preset)",
@@ -64,6 +64,11 @@
       "name": "ORBVWAP_AI1_HTTP_SHADOW_PROD_EURUSD-M1.set",
       "step": null,
       "role": "runtime_http"
+    },
+    {
+      "name": "ORBVWAP_AI1234_HTTP_LIVE_PROD_EURUSD-M1.set",
+      "step": 8,
+      "role": "chart_live_runtime"
     }
   ],
   "artifacts": {

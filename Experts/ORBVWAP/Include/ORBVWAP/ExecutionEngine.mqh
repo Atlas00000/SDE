@@ -11,7 +11,7 @@
 #include "RiskEngine.mqh"
 #include "Logger.mqh"
 #include "PathTracker.mqh"
-#include "AiExit.mqh"
+#include "AiRuntime.mqh"
 
 class CExecutionEngine
   {
@@ -571,7 +571,7 @@ public:
 
          const int hold_min = CPathTracker::HoldMinutes(ticket);
          const double mfe_frac = CPathTracker::MfeFrac(ticket);
-         const bool scratch = CAiExit::ShouldStallScratch(hold_min, mfe_frac);
+         const bool scratch = CAiRuntime::ShouldStallScratch(hold_min, mfe_frac);
 
          if(InpAiExitMode == ORBVWAP_AI_EXIT_SHADOW)
            {
